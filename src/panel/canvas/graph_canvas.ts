@@ -590,6 +590,7 @@ export default class CanvasDrawer {
 
     const mapping = _.find(iconMappings, ({ pattern }) => {
       try {
+
         return new RegExp(pattern).test(nodeId);
       } catch (error) {
         return false;
@@ -717,11 +718,11 @@ export default class CanvasDrawer {
 
   _drawNodeLabel(ctx: CanvasRenderingContext2D, node: cytoscape.NodeSingular) {
     const pos = node.position();
-    let label: string = node.id();
+    let label: string = node.data().label;
     const labelPadding = 1;
 
     if (this.selectionNeighborhood.empty() || !this.selectionNeighborhood.has(node)) {
-      if (label.length > 20) {
+      if (label.length > 100) {
         label = label.substr(0, 7) + '...' + label.slice(-7);
       }
     }

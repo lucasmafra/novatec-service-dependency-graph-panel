@@ -109,4 +109,22 @@
   width: 100%;
 }
 
+.add-button {
+    width: 46.5%;
+    margin-left: 0;
+    margin-top: 8px;
+    background-color: rgba(204, 204, 220, 0.16);
+}
 
+.no-background {
+    background-color: transparent;
+}
+
+.no-padding-left {
+    padding-left: 0;
+}
+
+.width-half {
+    width: 47%;
+    text-overflow: ellipsis;
+}

@@ -16,6 +16,7 @@ import GraphGenerator from 'processing/graph_generator';
 import PreProcessor from 'processing/pre_processor';
 import data from '../dummy_data_frame';
 import { getTemplateSrv } from '@grafana/runtime';
+import { EnGraphNodeType } from 'types';
 
 interface Props extends PanelProps<PanelSettings> {}
 
@@ -63,7 +64,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
     this.preProcessor = new PreProcessor(this);
   }
 
-  getSettings(resolveVariables: boolean): PanelSettings {
+    getSettings(resolveVariables: boolean): PanelSettings {
     if (resolveVariables) {
       return this.resolveVariables(this.props.options);
     }
@@ -220,8 +221,26 @@ export class PanelController extends PureComponent<Props, PanelState> {
   }
 
   render() {
-    const data = this.processData();
-    const error = this.getError();
+      // const data = this.processData();
+      const { nodes, connections } = this.getSettings(true)
+      console.log('nodes', nodes)
+      const data = {
+          nodes: Object.values(nodes).map((node) => ({
+              data: {
+                  id: node.id,
+                  type: EnGraphNodeType.INTERNAL,
+                  label: node.name,
+                  layer: 0
+              }
+          })),
+          edges: Object.values(connections).map(({ source, target }) => ({
+              source, target, data: { source, target }
+          }))
+      }
+    console.log('data', data)
+    // const error = this.getError();
+    const error = null
+
     if (error === null) {
       return (
         <div>
@@ -236,7 +255,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
               zoom={1}
               maxLayer={this.maxLayer}
               controller={this}
-              animate={false}
+              animate={true}
               showStatistics={false}
               settings={this.props.options}
               layerIncreaseFunction={() => this.layer(+1)}

@@ -3,7 +3,8 @@ import cytoscape, { EdgeCollection, EdgeSingular, ElementDefinition, NodeSingula
 import React, { PureComponent } from 'react';
 import { PanelController } from '../PanelController';
 import cyCanvas from 'cytoscape-canvas';
-import cola from 'cytoscape-cola';
+/* import cola from 'cytoscape-cola'; */
+import dagre from 'cytoscape-dagre';
 import layoutOptions from '../layout_options';
 import { Statistics } from '../statistics/Statistics';
 import _ from 'lodash';
@@ -36,7 +37,7 @@ interface PanelState {
 }
 
 cyCanvas(cytoscape);
-cytoscape.use(cola);
+cytoscape.use(dagre);
 
 export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState> {
   ref: any;
@@ -69,48 +70,52 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
       ...props,
       showStatistics: false,
       animateButtonClass: animateButtonClass,
-      animate: false,
+      animate: props.animate,
     };
 
     this.ref = React.createRef();
     this.templateSrv = getTemplateSrv();
+
   }
 
-  componentDidMount() {
+    componentDidMount() {
     const cy: any = cytoscape({
       container: this.ref,
       zoom: this.state.zoom,
-      elements: this.props.data,
+      elements: {
+          nodes: [],
+          edges: []
+      },
       layout: {
-        name: 'cola',
+        name: 'dagre',
       },
       style: [
         {
-          selector: 'node',
-          css: {
-            'background-color': '#fbfbfb',
-            'background-opacity': 0,
-          },
+            selector: 'node',
+            css: {
+                'background-color': '#fbfbfb',
+                'background-opacity': 0,
+            },
         },
 
-        {
-          selector: 'node:parent',
-          css: {
-            'background-opacity': 0.05,
-            shape: 'barrel',
+          {
+              selector: 'node:parent',
+              css: {
+                  'background-opacity': 0.05,
+                  shape: 'barrel',
+              },
           },
-        },
 
-        {
-          selector: 'edge',
-          style: {
-            'curve-style': 'bezier',
-            'control-point-step-size': 100,
-            visibility: 'hidden',
+          {
+              selector: 'edge',
+              style: {
+                  'curve-style': 'bezier',
+                  'control-point-step-size': 100,
+                  visibility: 'hidden',
+              },
           },
-        },
       ],
-      wheelSensitivity: 0.125,
+        wheelSensitivity: 0.125,
     });
 
     var graphCanvas = new CanvasDrawer(
@@ -131,9 +136,13 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
       graphCanvas: graphCanvas,
     });
     graphCanvas.start();
-  }
 
-  componentDidUpdate() {
+    if (this.state.animate) {
+          graphCanvas.startAnimation();
+    }
+    }
+
+    componentDidUpdate() {
     this._updateGraph(this.props.data);
   }
 
@@ -179,6 +188,7 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
           external_type: node.data.external_type,
           parent: node.data.parent,
           layer: node.data.layer,
+          label: node.data.label,
           metrics: {
             ...node.data.metrics,
           },

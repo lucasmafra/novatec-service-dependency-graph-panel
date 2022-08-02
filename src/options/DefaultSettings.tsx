@@ -48,7 +48,8 @@ export const DefaultSettings: PanelSettings = {
       filename: 'star_trek',
     },
   ],
-
+  nodes: [],
+  connections: [],
   externalIcons: [
     {
       pattern: 'web',

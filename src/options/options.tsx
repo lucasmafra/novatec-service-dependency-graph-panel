@@ -2,22 +2,43 @@ import { PanelOptionsEditorBuilder } from '@grafana/data';
 import { PanelSettings } from '../types';
 import { TypeaheadTextField } from './TypeAheadTextfield/TypeaheadTextfield';
 import { IconMapping } from './iconMapping/IconMapping';
+import { NodeMapping } from './nodeMapping/NodeMapping';
+import { ConnectionMapping } from './connectionMapping/ConnectionMapping';
 import { DummyDataSwitch } from './dummyDataSwitch/DummyDataSwitch';
 import { DefaultSettings } from './DefaultSettings';
 
 export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>) => {
   return (
     builder
+        .addCustomEditor({
+            path: 'nodes',
+            id: 'nodeMapping',
+            editor: NodeMapping,
+            name: '',
+            description: 'This setting controls which nodes should be added to the graph',
+            category: ['Nodes'],
+            defaultValue: DefaultSettings.nodes,
+        })
+
+      .addCustomEditor({
+          path: 'connections',
+          id: 'connectionMapping',
+          editor: ConnectionMapping,
+          name: '',
+          description: 'This setting controls which connections should be added to the graph',
+          category: ['Connections'],
+          defaultValue: DefaultSettings.connections,
+      })
 
       //Connection Mapping
-      .addCustomEditor({
-        path: 'dataMapping.aggregationType',
-        id: 'aggregationType',
-        editor: TypeaheadTextField,
-        name: 'Component Column',
-        category: ['Connection Mapping'],
-        defaultValue: DefaultSettings.dataMapping.aggregationType,
-      })
+        .addCustomEditor({
+            path: 'dataMapping.aggregationType',
+            id: 'aggregationType',
+            editor: TypeaheadTextField,
+            name: 'Component Column',
+            category: ['Connection Mapping'],
+            defaultValue: DefaultSettings.dataMapping.aggregationType,
+        })
 
       .addCustomEditor({
         path: 'dataMapping.sourceColumn',

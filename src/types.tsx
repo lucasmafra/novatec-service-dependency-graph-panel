@@ -8,6 +8,8 @@ export interface PanelSettings {
   showDebugInformation: boolean;
   showConnectionStats: boolean;
   icons: IconResource[];
+  nodes: Node[];
+  connections: Connection[];
   externalIcons: IconResource[];
   dataMapping: DataMapping;
   drillDownLink: string;
@@ -48,8 +50,19 @@ export interface IconResource {
   filename: string;
 }
 
+export interface Node {
+  id: string;
+  name: string;
+}
+
+export interface Connection {
+  id: string;
+  source: string;
+  target: string;
+}
+
 export interface QueryResponseColumn {
-  type?: string;
+    type?: string;
   text: string;
 }
 

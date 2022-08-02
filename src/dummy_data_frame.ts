@@ -562,4 +562,104 @@ const data: DataFrame[] = [
   },
 ];
 
+// const connections = [{
+//     from: 'app',
+//     to: 'stormshield',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'stormshield',
+//     to: 'warriv',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'savings-api',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'savings-api',
+//     to: 'warriv',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'karma-police',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'kaelan',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'bodyguard',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'savings-accounts',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'warriv',
+//     to: 'styx',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'styx',
+//     to: 'warriv',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'styx',
+//     to: 'cerberus',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'cerberus',
+//     to: 'styx',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'cerberus',
+//     to: 'spi-icom-client',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'spi-icom-client',
+//     to: 'cerberus',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'spi-icom-client',
+//     to: 'BACEN',
+//     req_rate: 1000*Math.random(),
+// }, {
+//     from: 'BACEN',
+//     to: 'spi-icom-client',
+//     req_rate: 1000*Math.random(),
+// },]
+
+// const myData : DataFrame[] = [ {
+//     refId: 'A',
+//     name: undefined,
+//     meta: undefined,
+//     fields: [{
+//         name: 'time',
+//         type: FieldType.time,
+//         config: {},
+//         values: new ArrayVector([0]),
+//     }, {
+//         name: 'service',
+//         type: FieldType.string,
+//         config: {},
+//         values: new ArrayVector(connections.map(({ from }) => from)),
+//     }, {
+//         name: 'target_service',
+//         type: FieldType.string,
+//         config: {},
+//         values: new ArrayVector(connections.map(({ to }) => to)),
+//     }, {
+//         name: 'protocol',
+//         type: FieldType.string,
+//         config: {},
+//         values: new ArrayVector(connections.map((_) => 'http')),
+//     }, {
+//         name: 'req_rate',
+//         type: FieldType.number,
+//         config: {},
+//         values: new ArrayVector(connections.map(({ req_rate }) => req_rate)),
+//     }],
+//     length: connections.length
+// }];
+
+export { data };
 export default data;
