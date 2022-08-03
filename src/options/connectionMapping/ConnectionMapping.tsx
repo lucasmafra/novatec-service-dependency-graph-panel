@@ -46,6 +46,22 @@ export class ConnectionMapping extends React.PureComponent<Props, State> {
     const connections = this.state.context.options[path];
     connections[index].source = event.currentTarget.value.toString();
     this.state.onChange.call(path, connections);
+    this.setLabel(connections[index].source, connections[index].target, index)
+  }
+
+
+  getConnectionLabel(source: string, target: string): string {
+      const nodes = this.state.context.options['nodes'];
+      const sourceLabel = nodes.find((n) => n.id === source).name
+      const targetLabel = nodes.find((n) => n.id === target).name
+      return `${sourceLabel}_to_${targetLabel}`
+  }
+
+  setLabel(source: string, target: string, index: number) {
+    const { path } = this.state.item;
+    const connections = this.state.context.options[path];
+    connections[index].label = this.getConnectionLabel(source, target);
+    this.state.onChange.call(path, connections);
   }
 
   setTarget(event: ChangeEvent<HTMLSelectElement>, index: number) {
@@ -53,6 +69,7 @@ export class ConnectionMapping extends React.PureComponent<Props, State> {
     const connections = this.state.context.options[path];
     connections[index].target = event.currentTarget.value.toString();
     this.props.onChange.call(path, connections);
+    this.setLabel(connections[index].source, connections[index].target, index)
   }
 
     render() {

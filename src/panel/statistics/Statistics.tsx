@@ -12,7 +12,7 @@ interface StatisticsProps {
 
 export const Statistics: React.FC<StatisticsProps> = ({
     show,
-    selectionId,
+    title,
     tableMetrics,
 }) => {
   let statisticsClass = 'statistics';
@@ -23,7 +23,7 @@ export const Statistics: React.FC<StatisticsProps> = ({
     statistics = (
         <div className="statistics">
         <div className="header--selection">
-        {selectionId}
+        {title}
         </div>
         { tableMetrics.length === 0 && (
             <div className="no-data--selection">{'No metrics available'}</div>

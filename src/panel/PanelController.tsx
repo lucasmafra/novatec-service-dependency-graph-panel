@@ -237,15 +237,13 @@ export class PanelController extends PureComponent<Props, PanelState> {
                   layer: 0
               }
           })),
-          edges: connections.map(({ source, target }) => ({
-              source, target, data: { source, target }
+          edges: connections.map(({ id, source, target, label }) => ({
+              source, target, data: { id, source, target, label }
           }))
       }
 
     // const error = this.getError();
     const error = null
-
-    console.log('tableMetrics', tableMetrics)
 
     if (error === null) {
       return (

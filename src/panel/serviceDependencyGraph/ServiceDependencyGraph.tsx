@@ -1,5 +1,5 @@
 import CanvasDrawer from 'panel/canvas/graph_canvas';
-import cytoscape, { EdgeCollection, EdgeSingular, ElementDefinition, NodeSingular } from 'cytoscape';
+import cytoscape, { EdgeSingular, ElementDefinition, NodeSingular } from 'cytoscape';
 import React, { PureComponent } from 'react';
 import { PanelController } from '../PanelController';
 import cyCanvas from 'cytoscape-canvas';
@@ -10,7 +10,6 @@ import { Statistics } from '../statistics/Statistics';
 import _ from 'lodash';
 import {
   TableContent,
-  IntGraphMetrics,
   IntGraph,
   IntGraphNode,
   IntGraphEdge,
@@ -44,8 +43,6 @@ cytoscape.use(dagre);
 
 export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState> {
   ref: any;
-
-  selectionId: string;
 
   selectionLabel: string;
 
@@ -118,7 +115,6 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
               style: {
                   'curve-style': 'bezier',
                   'control-point-step-size': 100,
-                  visibility: 'hidden',
               },
           },
       ],
@@ -136,8 +132,10 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     cy.on('render cyCanvas.resize', () => {
       graphCanvas.repaint(true);
     });
-    cy.on('select', 'node', () => this.onSelectionChange());
-    cy.on('unselect', 'node', () => this.onSelectionChange());
+        cy.on('select', 'edge', () => this.onSelectionChange('edge'));
+        cy.on('unselect', 'edge', () => this.onSelectionChange('edge'));
+        cy.on('select', 'node', () => this.onSelectionChange('node'));
+        cy.on('unselect', 'node', () => this.onSelectionChange('node'));
     this.setState({
       cy: cy,
       graphCanvas: graphCanvas,
@@ -207,14 +205,15 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     return cyNodes;
   }
 
-  _transformEdges(edges: IntGraphEdge[]): ElementDefinition[] {
-    const cyEdges: ElementDefinition[] = _.map(edges, (edge) => {
+    _transformEdges(edges: IntGraphEdge[]): ElementDefinition[] {
+        const cyEdges: ElementDefinition[] = _.map(edges, (edge) => {
       const cyEdge: ElementDefinition = {
         group: 'edges',
         data: {
-          id: edge.data.source + ':' + edge.data.target,
+          id: edge.data.id,
           source: edge.data.source,
           target: edge.data.target,
+          label: edge.data.label,
           metrics: {
             ...edge.data.metrics,
           },
@@ -245,11 +244,11 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     return elements;
   }
 
-  onSelectionChange() {
+  onSelectionChange(elementType: 'node' | 'edge') {
     const selection = this.state.cy.$(':selected');
 
     if (selection.length === 1) {
-      this.updateStatisticTable();
+      this.updateStatisticTable(elementType);
       this.setState({
         showStatistics: true,
       });
@@ -283,7 +282,6 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     const that = this;
     const options = {
       ...layoutOptions,
-
       stop: function () {
         if (unlockNodes) {
           that.unlockNodes();
@@ -304,15 +302,15 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
   }
 
   fit() {
-    const selection = this.state.graphCanvas.selectionNeighborhood;
-    if (selection && !selection.empty()) {
-      this.state.cy.fit(selection, 30);
-    } else {
-      this.state.cy.fit();
-    }
-    this.setState({
-      zoom: this.state.cy.zoom(),
-    });
+      const selection = this.state.graphCanvas.selectionNeighborhood;
+      if (selection && !selection.empty()) {
+          this.state.cy.fit(selection, 30);
+      } else {
+          this.state.cy.fit();
+      }
+      this.setState({
+          zoom: this.state.cy.zoom(),
+      });
   }
 
   zoom(zoom: number) {
@@ -325,95 +323,13 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     this.state.cy.center();
   }
 
-  updateStatisticTable() {
+  updateStatisticTable(elementType: 'node' | 'edge') {
     const selection = this.state.cy.$(':selected');
-
     if (selection.length === 1) {
-      const currentNode: NodeSingular = selection[0];
-      this.selectionId = currentNode.id().toString();
-      this.selectionRef = { nodeId: this.selectionId }
-      this.selectionLabel = currentNode.data().label
-      this.currentType = currentNode.data('type');
-      const receiving: TableContent[] = [];
-      const sending: TableContent[] = [];
-      const edges: EdgeCollection = selection.connectedEdges();
-
-      const metrics: IntGraphMetrics = selection.nodes()[0].data('metrics');
-
-      const requestCount = _.defaultTo(metrics.rate, -1);
-      const errorCount = _.defaultTo(metrics.error_rate, -1);
-      const duration = _.defaultTo(metrics.response_time, -1);
-      const threshold = _.defaultTo(metrics.threshold, -1);
-
-      this.selectionStatistics = {};
-
-      if (requestCount >= 0) {
-        this.selectionStatistics.requests = Math.floor(requestCount);
-      }
-      if (errorCount >= 0) {
-        this.selectionStatistics.errors = Math.floor(errorCount);
-      }
-      if (duration >= 0) {
-        this.selectionStatistics.responseTime = Math.floor(duration);
-
-        if (threshold >= 0) {
-          this.selectionStatistics.threshold = Math.floor(threshold);
-          this.selectionStatistics.thresholdViolation = duration > threshold;
-        }
-      }
-
-      for (let i = 0; i < edges.length; i++) {
-        const actualEdge: EdgeSingular = edges[i];
-        const sendingCheck: boolean = actualEdge.source().id() === this.selectionId;
-        let node: NodeSingular;
-
-        if (sendingCheck) {
-          node = actualEdge.target();
-        } else {
-          node = actualEdge.source();
-        }
-
-        const sendingObject: TableContent = {
-          name: node.id(),
-          responseTime: '-',
-          rate: '-',
-          error: '-',
-        };
-
-        const edgeMetrics: IntGraphMetrics = actualEdge.data('metrics');
-
-        if (edgeMetrics !== undefined) {
-          const { response_time, rate, error_rate } = edgeMetrics;
-
-          if (rate !== undefined) {
-            sendingObject.rate = Math.floor(rate).toString();
-          }
-          if (response_time !== undefined) {
-            sendingObject.responseTime = Math.floor(response_time) + ' ms';
-          }
-          if (error_rate !== undefined && rate !== undefined) {
-            sendingObject.error = Math.floor(error_rate / (rate / 100)) + '%';
-          }
-        }
-
-        if (sendingCheck) {
-          sending.push(sendingObject);
-        } else {
-          receiving.push(sendingObject);
-        }
-      }
-      this.receiving = receiving;
-      this.sending = sending;
-
-      this.generateDrillDownLink();
-    }
-  }
-
-  generateDrillDownLink() {
-    const { drillDownLink } = this.getSettings(false);
-    if (drillDownLink !== undefined) {
-      const link = drillDownLink.replace('{}', this.selectionId);
-      this.resolvedDrillDownLink = this.templateSrv.replace(link);
+      const selectionId = selection[0].id().toString();
+      console.log('selectionId', selectionId)
+      this.selectionRef = elementType === 'node' ? { nodeId: selectionId }  : { connectionId: selectionId  }
+      this.selectionLabel = selection[0].data().label
     }
   }
 
@@ -452,7 +368,7 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
         </div>
         <Statistics
           show={this.state.showStatistics}
-          selectionId={this.selectionLabel}
+          title={this.selectionLabel}
           tableMetrics={this.getRelevantTableMetrics()}
         />
       </div>

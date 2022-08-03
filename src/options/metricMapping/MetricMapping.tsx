@@ -1,6 +1,6 @@
 import React from 'react';
 import { StandardEditorContext, StandardEditorProps } from '@grafana/data';
-import { Metric, Node,  PanelSettings } from '../../types';
+import { Metric, Node, Connection, PanelSettings } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Props extends StandardEditorProps<string, PanelSettings> {
@@ -43,8 +43,11 @@ export class MetricMapping extends React.PureComponent<Props, State> {
 
   setMappedTo(event: React.ChangeEvent<HTMLSelectElement>, index: number) {
     const { path } = this.state.item;
+    const elementId = event.currentTarget.value.toString()
     const metrics = this.state.context.options[path];
-    metrics[index].mappedTo = { nodeId: event.currentTarget.value.toString() };
+    const nodeIds = this.getNodes().map((n) => n.id)
+    const connectionIds = this.getConnections((c) => c.id)
+    metrics[index].mappedTo = nodeIds.includes(elementId) ? { nodeId: elementId  } : { connectionId: elementId };
     this.state.onChange.call(path, metrics);
   }
 
@@ -66,6 +69,10 @@ export class MetricMapping extends React.PureComponent<Props, State> {
 
     getNodes(): Node[] {
         return this.state.context.options['nodes'];
+    }
+
+    getConnections(): Connection[] {
+        return this.state.context.options['connections'];
     }
 
     getQueries() {
@@ -102,19 +109,28 @@ export class MetricMapping extends React.PureComponent<Props, State> {
                                 value={this.getMetricMappedElementId(metric)}
                                 onChange={(e) => this.setMappedTo(e, index)}
                             >
-                                <option value="" selected disabled hidden>Choose node</option>
-                                {this.getNodes().map((node: Node) => (
-                                    <option key={node.id} value={node.id}>
-                                        {node.name}
-                                    </option>
-                                ))}
+                                <option value="" selected disabled hidden>Choose node or connection</option>
+                                <optgroup label="Nodes">
+                                    {this.getNodes().map((node: Node) => (
+                                        <option key={node.id} value={node.id}>
+                                            {node.name}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                                <optgroup label="Connections">
+                                    {this.getConnections().map((connection: Connection) => (
+                                        <option key={connection.id} value={connection.id}>
+                                            {connection.label}
+                                        </option>
+                                    ))}
+                                </optgroup>
                             </select>
                             <select
                                 className="input-small gf-form-input"
                                 value={metric.queryId}
                                 onChange={(e) => this.setQueryId(e, index)}
                             >
-                                <option value="" selected disabled hidden>Choose query</option>
+                                <option value="" selected disabled hidden>Choose element</option>
                                 {this.getQueries().map((query: string) => (
                                     <option key={query} value={query}>
                                         {query}

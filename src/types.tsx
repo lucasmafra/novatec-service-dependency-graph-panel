@@ -60,6 +60,7 @@ export interface Connection {
   id: string;
   source: string;
   target: string;
+  label: string;
 }
 
 export type ElementRef = { nodeId: string } | { connectionId: string };
@@ -172,6 +173,7 @@ export interface IntGraphEdge {
 export interface IntGraphEdgeData {
   source: string;
   target: string;
+  label: string;
   metrics?: IntGraphMetrics;
 }
 
