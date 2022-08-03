@@ -16,6 +16,8 @@ import {
   IntGraphEdge,
   PanelSettings,
   IntSelectionStatistics,
+  TableMetric,
+  ElementRef
 } from 'types';
 import { TemplateSrv, getTemplateSrv } from '@grafana/runtime';
 import './ServiceDependencyGraph.css';
@@ -34,6 +36,7 @@ interface PanelState {
   maxLayer: number;
   layerIncreaseFunction: any;
   layerDecreaseFunction: any;
+  tableMetrics: TableMetric[];
 }
 
 cyCanvas(cytoscape);
@@ -43,6 +46,10 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
   ref: any;
 
   selectionId: string;
+
+  selectionLabel: string;
+
+  selectionRef: ElementRef;
 
   currentType: string;
 
@@ -324,6 +331,8 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     if (selection.length === 1) {
       const currentNode: NodeSingular = selection[0];
       this.selectionId = currentNode.id().toString();
+      this.selectionRef = { nodeId: this.selectionId }
+      this.selectionLabel = currentNode.data().label
       this.currentType = currentNode.data('type');
       const receiving: TableContent[] = [];
       const sending: TableContent[] = [];
@@ -408,7 +417,11 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     }
   }
 
-  render() {
+  getRelevantTableMetrics(): TableMetric[] {
+      return this.state.tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.metric.mappedTo, this.selectionRef))
+  }
+
+    render() {
     if (this.state.cy !== undefined) {
       this._updateGraph(this.props.data);
     }
@@ -439,13 +452,8 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
         </div>
         <Statistics
           show={this.state.showStatistics}
-          selectionId={this.selectionId}
-          resolvedDrillDownLink={this.resolvedDrillDownLink}
-          selectionStatistics={this.selectionStatistics}
-          currentType={this.currentType}
-          showBaselines={this.getSettings(true).showBaselines}
-          receiving={this.receiving}
-          sending={this.sending}
+          selectionId={this.selectionLabel}
+          tableMetrics={this.getRelevantTableMetrics()}
         />
       </div>
     );

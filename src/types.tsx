@@ -10,6 +10,7 @@ export interface PanelSettings {
   icons: IconResource[];
   nodes: Node[];
   connections: Connection[];
+  metrics: Metric[];
   externalIcons: IconResource[];
   dataMapping: DataMapping;
   drillDownLink: string;
@@ -59,6 +60,20 @@ export interface Connection {
   id: string;
   source: string;
   target: string;
+}
+
+export type ElementRef = { nodeId: string } | { connectionId: string };
+
+export interface Metric {
+    id: string;
+    mappedTo: ElementRef
+    queryId: string;
+}
+
+export interface TableMetric {
+    metric: Metric
+    title: string
+    rows: TableRow[]
 }
 
 export interface QueryResponseColumn {
@@ -182,6 +197,8 @@ export interface TableContent {
   rate: string;
   error: string;
 }
+
+export type TableRow = Object
 
 export interface IntSelectionStatistics {
   requests?: number;

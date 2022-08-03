@@ -14,6 +14,7 @@ import cytoscape, { EdgeSingular, NodeSingular } from 'cytoscape';
 import '../css/novatec-service-dependency-graph-panel.css';
 import GraphGenerator from 'processing/graph_generator';
 import PreProcessor from 'processing/pre_processor';
+import { getTableMetrics } from 'processing/metrics_processor'
 import data from '../dummy_data_frame';
 import { getTemplateSrv } from '@grafana/runtime';
 import { EnGraphNodeType } from 'types';
@@ -222,10 +223,13 @@ export class PanelController extends PureComponent<Props, PanelState> {
 
   render() {
       // const data = this.processData();
-      const { nodes, connections } = this.getSettings(true)
-      console.log('nodes', nodes)
+      let { nodes, connections, metrics } = this.getSettings(true)
+      nodes = Object.values(nodes)
+      connections = Object.values(connections)
+      metrics = Object.values(metrics)
+      const tableMetrics = getTableMetrics(nodes, connections, metrics, this.props.data.series)
       const data = {
-          nodes: Object.values(nodes).map((node) => ({
+          nodes: nodes.map((node) => ({
               data: {
                   id: node.id,
                   type: EnGraphNodeType.INTERNAL,
@@ -233,13 +237,15 @@ export class PanelController extends PureComponent<Props, PanelState> {
                   layer: 0
               }
           })),
-          edges: Object.values(connections).map(({ source, target }) => ({
+          edges: connections.map(({ source, target }) => ({
               source, target, data: { source, target }
           }))
       }
-    console.log('data', data)
+
     // const error = this.getError();
     const error = null
+
+    console.log('tableMetrics', tableMetrics)
 
     if (error === null) {
       return (
@@ -261,6 +267,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
               layerIncreaseFunction={() => this.layer(+1)}
               layerDecreaseFunction={() => this.layer(-1)}
               layer={0}
+              tableMetrics={tableMetrics}
             />
           </div>
         </div>

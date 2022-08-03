@@ -1,45 +1,59 @@
 import React from 'react';
-import { IntTableHeader, NodeData } from '../../types';
+import { IntTableHeader, TableRow } from '../../types';
 import BootstrapTable from 'react-bootstrap-table-next';
 
 interface SortableTableProps {
-  tableHeaders: IntTableHeader[];
-  data: NodeData[];
+  rows: TableRow[];
+  title: string;
+  noDataText: string;
 }
 
-function sort(a: string, b: string, order: string, ignoreLiteral: string) {
-  var cleanA = a.replace(ignoreLiteral, '');
-  var cleanB = b.replace(ignoreLiteral, '');
-  if ((order === 'asc' && cleanA === '-') || (order !== 'asc' && cleanB === '-')) {
-    return -1;
-  }
-  if ((order === 'asc' && cleanB === '-') || (order !== 'asc' && cleanA === '-')) {
-    return 1;
-  }
+function sort(a: string, b: string, order: string) {
   if (order === 'asc') {
-    return Number(cleanA) - Number(cleanB);
+    return Number(a) - Number(b);
   }
-  return Number(cleanB) - Number(cleanA);
+  return Number(b) - Number(a);
 }
 
-export const SortableTable: React.FC<SortableTableProps> = ({ tableHeaders, data }) => {
-  tableHeaders.forEach(function (value, i) {
-    value.classes = 'table--td--selection';
-    if (i !== 0) {
-      value.sortFunc = (a: string, b: string, order: string, _dataField: any, _rowA: any) => {
-        return sort(a, b, order, value.ignoreLiteral);
-      };
+function getTableHeaders(rows: TableRow[]): IntTableHeader[] {
+    if (rows.length === 0) {
+        return []
     }
-  });
+    return Object.keys(rows[0]).map((column) => ({
+        text: column,
+        dataField: column,
+        sort: true
+    }))
+
+}
+
+export const SortableTable: React.FC<SortableTableProps> = ({ rows, title, noDataText }) => {
+    const tableHeaders = getTableHeaders(rows)
+
+    tableHeaders.forEach(function (value, i) {
+        value.classes = 'table--td--selection';
+        if (i !== 0) {
+            value.sortFunc = (a: string, b: string, order: string, _dataField: any, _rowA: any) => {
+                return sort(a, b, order);
+            };
+        }
+    });
 
   return (
-    <BootstrapTable
-      keyField="name"
-      data={data}
-      columns={tableHeaders}
-      classes="table--selection"
-      headerClasses="table--selection table--selection--head"
-    />
+      <div>
+          <div className="secondHeader--selection">{title}</div>
+          {rows.length > 0 ?
+                         (
+                             <BootstrapTable
+                                 keyField="name"
+                                 data={rows}
+                                 columns={tableHeaders}
+                                 classes="table--selection"
+                                 headerClasses="table--selection table--selection--head"
+                             />
+                         ) : (<div className="no-data--selection">{noDataText}</div>)
+          }
+      </div>
   );
 };
 

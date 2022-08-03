@@ -66,11 +66,12 @@
 
 .table--selection {
   width: 99%;
-  table-layout: fixed;
 }
 
 .table--selection th, .table--selection td {
   padding: 3px 5px;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 .table--selection tr {

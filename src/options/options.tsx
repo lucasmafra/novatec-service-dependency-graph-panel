@@ -3,6 +3,7 @@ import { PanelSettings } from '../types';
 import { TypeaheadTextField } from './TypeAheadTextfield/TypeaheadTextfield';
 import { IconMapping } from './iconMapping/IconMapping';
 import { NodeMapping } from './nodeMapping/NodeMapping';
+import { MetricMapping } from './metricMapping/MetricMapping';
 import { ConnectionMapping } from './connectionMapping/ConnectionMapping';
 import { DummyDataSwitch } from './dummyDataSwitch/DummyDataSwitch';
 import { DefaultSettings } from './DefaultSettings';
@@ -25,10 +26,20 @@ export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>
           id: 'connectionMapping',
           editor: ConnectionMapping,
           name: '',
-          description: 'This setting controls which connections should be added to the graph',
+          description: 'This setting controls which connections should be added to the graph.',
           category: ['Connections'],
           defaultValue: DefaultSettings.connections,
       })
+
+     .addCustomEditor({
+         path: 'metrics',
+         id: 'metricMapping',
+         editor: MetricMapping,
+         name: '',
+         description: 'This setting controls which nodes and connections are mapped to which metric.',
+         category: ['Metrics'],
+         defaultValue: DefaultSettings.metrics,
+     })
 
       //Connection Mapping
         .addCustomEditor({
