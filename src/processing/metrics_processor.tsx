@@ -8,7 +8,7 @@ import { TableMetric, ElementRef, Metric, TableRow, Connection, Node } from '../
 function _dataFrameToTableRows(dataFrame: DataFrame): TableRow[] {
     const rows = new Array<TableRow>()
     for (let i = 0; i < dataFrame.length; i++) {
-        rows.push(_.reduce(dataFrame.fields, (acc, field) => {
+        rows.push(_.reduce(dataFrame.fields.filter((field) => field.type !== "time"), (acc, field) => {
             return { ...acc, [field.name] : field.values.get(i) };
         }, {}))
     }
@@ -17,11 +17,6 @@ function _dataFrameToTableRows(dataFrame: DataFrame): TableRow[] {
 
 function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], metrics: Metric[]): TableMetric[] {
     const relevantMetrics = metrics.filter(({ mappedTo }) => {
-        if ('connectionId' in elementRef && elementRef.connectionId === '3f78c7d1-92ef-4701-ab7e-291f27f9ad0c') {
-            console.log('HERE connection id', elementRef.connectionId)
-            console.log('mappedTo', mappedTo)
-            console.log('elementRef', elementRef)
-        }
         return  _.isEqual(mappedTo, elementRef)
     })
 
@@ -37,7 +32,6 @@ function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], me
 
 export function getTableMetrics(nodes: Node[], connections: Connection[], metrics: Metric[], series: DataFrame[]): TableMetric[] {
     const nodeMetrics = _.flatten(nodes.map(({ id }) => _getElementTableMetrics({ nodeId: id }, series, metrics )))
-    console.log('connections', connections)
     const connectionMetrics = _.flatten(connections.map(({ id }) => _getElementTableMetrics({ connectionId: id }, series, metrics )))
     return [...nodeMetrics, ...connectionMetrics]
 }

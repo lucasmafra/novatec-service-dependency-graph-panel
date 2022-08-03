@@ -327,7 +327,6 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     const selection = this.state.cy.$(':selected');
     if (selection.length === 1) {
       const selectionId = selection[0].id().toString();
-      console.log('selectionId', selectionId)
       this.selectionRef = elementType === 'node' ? { nodeId: selectionId }  : { connectionId: selectionId  }
       this.selectionLabel = selection[0].data().label
     }
