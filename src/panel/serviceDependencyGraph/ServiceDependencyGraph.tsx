@@ -113,18 +113,22 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
           {
               selector: 'edge',
               style: {
-                  'curve-style': 'bezier',
-                  'control-point-step-size': 100,
+                  'curve-style': 'straight',
+                  'line-color': 'transparent',
+                  'opacity': 0,
+                  'background-color': 'transparent',
+                  'overlay-color': 'transparent',
+                  'overlay-opacity': 0,
               },
           },
       ],
         wheelSensitivity: 0.125,
     });
 
-    var graphCanvas = new CanvasDrawer(
-      this,
-      cy,
-      cy.cyCanvas({
+        var graphCanvas = new CanvasDrawer(
+            this,
+            cy,
+            cy.cyCanvas({
         zIndex: 1,
       })
     );
@@ -145,14 +149,14 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
     if (this.state.animate) {
           graphCanvas.startAnimation();
     }
-    }
+  }
 
     componentDidUpdate() {
     this._updateGraph(this.props.data);
   }
 
   _updateGraph(graph: IntGraph) {
-    const cyNodes = this._transformNodes(graph.nodes);
+        const cyNodes = this._transformNodes(graph.nodes);
     const cyEdges = this._transformEdges(graph.edges);
 
     const nodes = this.state.cy.nodes().toArray();
@@ -206,7 +210,7 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
   }
 
     _transformEdges(edges: IntGraphEdge[]): ElementDefinition[] {
-        const cyEdges: ElementDefinition[] = _.map(edges, (edge) => {
+        const cyEdges: ElementDefinition[] = _.map(edges, (edge: any) => {
       const cyEdge: ElementDefinition = {
         group: 'edges',
         data: {

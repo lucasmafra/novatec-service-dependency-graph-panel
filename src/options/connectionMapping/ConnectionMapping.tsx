@@ -52,8 +52,8 @@ export class ConnectionMapping extends React.PureComponent<Props, State> {
 
   getConnectionLabel(source: string, target: string): string {
       const nodes = this.state.context.options['nodes'];
-      const sourceLabel = nodes.find((n) => n.id === source).name
-      const targetLabel = nodes.find((n) => n.id === target).name
+      const sourceLabel = nodes.find((n: Node) => n.id === source).name
+      const targetLabel = nodes.find((n: Node) => n.id === target).name
       return `${sourceLabel}_to_${targetLabel}`
   }
 

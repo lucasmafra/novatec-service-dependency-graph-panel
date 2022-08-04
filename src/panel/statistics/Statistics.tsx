@@ -6,7 +6,7 @@ import { TableMetric } from '../../types';
 
 interface StatisticsProps {
   show: boolean;
-  selectionId: string | number;
+  title: string;
   tableMetrics: TableMetric[]
 }
 

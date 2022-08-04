@@ -206,6 +206,7 @@ class GraphGenerator {
         source,
         target,
         metrics,
+        label: ''
       },
     };
 
@@ -257,6 +258,7 @@ class GraphGenerator {
         source: '',
         target: '',
         metrics: {},
+        label: ''
       },
     };
     edges.forEach((edge) => {

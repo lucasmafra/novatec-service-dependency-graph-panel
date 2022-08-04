@@ -198,15 +198,14 @@ export class PanelController extends PureComponent<Props, PanelState> {
 
   getError(): string | null {
     if (!this.isDataAvailable()) {
-      return 'No data to show - the query returned no data.';
+      return 'No data available - Use the options panel to add nodes and connections.';
     }
     return null;
   }
 
   isDataAvailable() {
-    const dataExist =
-      !_.isUndefined(this.currentData) && !_.isUndefined(this.currentData.graph) && this.currentData.graph.length > 0;
-    return dataExist;
+      const { nodes } = this.getSettings(true)
+      return Object.values(nodes).length > 0
   }
 
   layer(layerIncrease: number) {
@@ -238,12 +237,11 @@ export class PanelController extends PureComponent<Props, PanelState> {
               }
           })),
           edges: connections.map(({ id, source, target, label }) => ({
-              source, target, data: { id, source, target, label }
+              source, target, data: { id, source, target, label, metrics: { rate: 37 } }
           }))
       }
 
-    // const error = this.getError();
-    const error = null
+    const error = this.getError();
 
     if (error === null) {
       return (

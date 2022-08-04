@@ -46,7 +46,6 @@ export class MetricMapping extends React.PureComponent<Props, State> {
     const elementId = event.currentTarget.value.toString()
     const metrics = this.state.context.options[path];
     const nodeIds = this.getNodes().map((n) => n.id)
-    const connectionIds = this.getConnections((c) => c.id)
     metrics[index].mappedTo = nodeIds.includes(elementId) ? { nodeId: elementId  } : { connectionId: elementId };
     this.state.onChange.call(path, metrics);
   }
