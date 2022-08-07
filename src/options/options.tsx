@@ -4,6 +4,7 @@ import { TypeaheadTextField } from './TypeAheadTextfield/TypeaheadTextfield';
 import { IconMapping } from './iconMapping/IconMapping';
 import { NodeMapping } from './nodeMapping/NodeMapping';
 import { MetricMapping } from './metricMapping/MetricMapping';
+import { ThresholdMapping } from './thresholdMapping/ThresholdMapping';
 import { ConnectionMapping } from './connectionMapping/ConnectionMapping';
 import { DummyDataSwitch } from './dummyDataSwitch/DummyDataSwitch';
 import { DefaultSettings } from './DefaultSettings';
@@ -40,6 +41,15 @@ export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>
          category: ['Metrics'],
          defaultValue: DefaultSettings.metrics,
      })
+    .addCustomEditor({
+        path: 'thresholds',
+        id: 'thresholdMapping',
+        editor: ThresholdMapping,
+        name: '',
+        description: 'This setting controls which threshold should be applied to metrics.',
+        category: ['Thresholds'],
+        defaultValue: DefaultSettings.thresholds,
+    })
 
       //Connection Mapping
         .addCustomEditor({

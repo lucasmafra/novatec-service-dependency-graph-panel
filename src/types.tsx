@@ -11,6 +11,7 @@ export interface PanelSettings {
   nodes: Node[];
   connections: Connection[];
   metrics: Metric[];
+  thresholds: Threshold[];
   externalIcons: IconResource[];
   dataMapping: DataMapping;
   drillDownLink: string;
@@ -69,6 +70,27 @@ export interface Metric {
     id: string;
     mappedTo: ElementRef
     queryId: string;
+}
+
+export interface Threshold {
+    id: string;
+    metricId: string;
+    comparisor: ThresholdComparisor;
+    valueField: string;
+    value: string;
+}
+
+export interface ThresholdComparisor {
+    type: ThresholdComparisorType
+    label: string;
+}
+
+export enum ThresholdComparisorType {
+    LESS_THAN,
+    LESS_THAN_OR_EQUAL_TO,
+    EQUAL_TO,
+    GREATER_THAN_OR_EQUAL_TO,
+    GREATER_THAN
 }
 
 export interface TableMetric {

@@ -51,6 +51,7 @@ export const DefaultSettings: PanelSettings = {
   nodes: [],
   connections: [],
   metrics: [],
+  thresholds: [],
   externalIcons: [
     {
       pattern: 'web',
