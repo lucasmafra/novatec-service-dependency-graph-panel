@@ -83,6 +83,7 @@ export interface Threshold {
 export interface ThresholdComparisor {
     type: ThresholdComparisorType
     label: string;
+    exceeds: (value: any, valueRef: any) => boolean // value exceeds valueRef?
 }
 
 export enum ThresholdComparisorType {
@@ -97,6 +98,7 @@ export interface TableMetric {
     metric: Metric
     title: string
     rows: TableRow[]
+    thresholds: Threshold[]
 }
 
 export interface QueryResponseColumn {

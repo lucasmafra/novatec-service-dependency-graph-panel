@@ -1,7 +1,8 @@
 import React from 'react';
 import { StandardEditorContext, StandardEditorProps } from '@grafana/data';
-import { Threshold, PanelSettings, Metric, ThresholdComparisor, ThresholdComparisorType } from '../../types';
+import { Threshold, PanelSettings, Metric, ThresholdComparisor } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import supportedThresholds from './supportedThresholds';
 
 interface Props extends StandardEditorProps<string, PanelSettings> {
     item: any;
@@ -44,8 +45,8 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
   setComparisor(event: React.ChangeEvent<HTMLSelectElement>, index: number) {
       const { path } = this.state.item;
       const thresholds = this.state.context.options[path];
-      const comparisor = this.getComparisors().find((c) => c.type.toString() === event.currentTarget.value.toString());
-      thresholds[index].comparisor = comparisor
+      const comparisor = supportedThresholds.find((c) => c.type.toString() === event.currentTarget.value.toString());
+      thresholds[index].comparisor = { ...comparisor, exceeds: (a: any, b: any) => comparisor.exceeds(a, b) }
       this.state.onChange.call(path, thresholds);
   }
 
@@ -80,25 +81,6 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
         const fields = data.find((dataFrame) => dataFrame.refId === queryId)?.fields
         if (!fields) return []
         return fields.filter((f) => f.type !== "time").map((f) => f.name)
-    }
-
-    getComparisors(): ThresholdComparisor[] {
-        return [{
-            type: ThresholdComparisorType.LESS_THAN,
-            label: '<'
-        }, {
-            type: ThresholdComparisorType.LESS_THAN_OR_EQUAL_TO,
-            label: '<='
-        }, {
-            type: ThresholdComparisorType.EQUAL_TO,
-            label: '='
-        }, {
-            type: ThresholdComparisorType.GREATER_THAN_OR_EQUAL_TO,
-            label: '>='
-        }, {
-            type: ThresholdComparisorType.GREATER_THAN,
-            label: '>'
-        }]
     }
 
     render() {
@@ -159,7 +141,7 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
                                     onChange={(e) => this.setComparisor(e, index)}
                                 >
                                     <option value="" selected disabled hidden>Comparisor</option>
-                                    {this.getComparisors().map((comparisor: ThresholdComparisor) => (
+                                    {supportedThresholds.map((comparisor: ThresholdComparisor) => (
                                         <option key={comparisor.type} value={comparisor.type}>
                                             {comparisor.label}
                                         </option>

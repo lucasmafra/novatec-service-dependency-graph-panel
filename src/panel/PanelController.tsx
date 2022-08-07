@@ -9,7 +9,7 @@ import {
 } from '@grafana/data';
 import { ServiceDependencyGraph } from './serviceDependencyGraph/ServiceDependencyGraph';
 import _ from 'lodash';
-import { CurrentData, CyData, IntGraph, IntGraphEdge, IntGraphNode, PanelSettings } from '../types';
+import { CurrentData, CyData, IntGraph, IntGraphEdge, IntGraphNode, PanelSettings, TableMetric, ThresholdComparisor } from '../types';
 import cytoscape, { EdgeSingular, NodeSingular } from 'cytoscape';
 import '../css/novatec-service-dependency-graph-panel.css';
 import GraphGenerator from 'processing/graph_generator';
@@ -17,7 +17,8 @@ import PreProcessor from 'processing/pre_processor';
 import { getTableMetrics } from 'processing/metrics_processor'
 import data from '../dummy_data_frame';
 import { getTemplateSrv } from '@grafana/runtime';
-import { EnGraphNodeType } from 'types';
+import { EnGraphNodeType, ElementRef, Threshold } from 'types';
+import supportedThresholds from '../options/thresholdMapping/supportedThresholds';
 
 interface Props extends PanelProps<PanelSettings> {}
 
@@ -220,13 +221,37 @@ export class PanelController extends PureComponent<Props, PanelState> {
     });
   }
 
-  render() {
+    isHealthyRow(thresholds: Threshold[]) {
+        return (row: any) =>
+            thresholds.map((threshold) => ({ ...threshold, comparisor: supportedThresholds.find(t => t.type === threshold.comparisor.type) }))
+                      .map((threshold) => !threshold.comparisor.exceeds(row[threshold.valueField], threshold.value))
+                      .every(Boolean)
+    }
+
+    elementHealth(elementRef: ElementRef, tableMetrics: TableMetric[]) {
+        const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.metric.mappedTo, elementRef))
+
+        const healthyRows = relevantTableMetrics.map(t => t.rows.filter(this.isHealthyRow(t.thresholds)).length)
+                                                .reduce((a, b) => a + b, 0)
+
+        const totalRows = relevantTableMetrics.map(t => t.rows.length)
+                                              .reduce((a, b) => a + b, 0)
+
+        if (totalRows === 0) return 1
+        return healthyRows / totalRows
+    }
+
+    render() {
       // const data = this.processData();
-      let { nodes, connections, metrics } = this.getSettings(true)
+      let { nodes, connections, metrics, thresholds } = this.getSettings(true)
+
       nodes = Object.values(nodes)
       connections = Object.values(connections)
       metrics = Object.values(metrics)
-      const tableMetrics = getTableMetrics(nodes, connections, metrics, this.props.data.series)
+      thresholds = Object.values(thresholds)
+
+      const tableMetrics = getTableMetrics(nodes, connections, metrics, thresholds, this.props.data.series)
+
       const data = {
           nodes: nodes.map((node) => ({
               data: {
@@ -237,7 +262,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
               }
           })),
           edges: connections.map(({ id, source, target, label }) => ({
-              source, target, data: { id, source, target, label, metrics: { rate: 37 } }
+              source, target, data: { id, source, target, label, metrics: { rate: 37, error_rate: 37 * (1 - this.elementHealth({ connectionId: id }, tableMetrics)) } }
           }))
       }
 
