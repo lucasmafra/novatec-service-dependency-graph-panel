@@ -1,6 +1,7 @@
 import {
     DataFrame,
 } from '@grafana/data';
+import supportedThresholds from '../options/thresholdMapping/supportedThresholds';
 import * as _ from 'lodash'
 
 import { TableMetric, ElementRef, Metric, TableRow, Connection, Node, Threshold } from '../types';
@@ -37,4 +38,12 @@ export function getTableMetrics(nodes: Node[], connections: Connection[], metric
     const nodeMetrics = _.flatten(nodes.map(({ id }) => _getElementTableMetrics({ nodeId: id }, series, metrics, thresholds )))
     const connectionMetrics = _.flatten(connections.map(({ id }) => _getElementTableMetrics({ connectionId: id }, series, metrics, thresholds)))
     return [...nodeMetrics, ...connectionMetrics]
+}
+
+
+export function isHealthyRow(thresholds: Threshold[]) {
+    return (row: any) =>
+        thresholds.map((threshold) => ({ ...threshold, comparisor: supportedThresholds.find(t => t.type === threshold.comparisor.type) }))
+                  .map((threshold) => !threshold.comparisor.exceeds(row[threshold.valueField], threshold.value))
+                  .every(Boolean)
 }

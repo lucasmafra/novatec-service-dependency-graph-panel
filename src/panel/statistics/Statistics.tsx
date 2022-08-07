@@ -34,6 +34,7 @@ export const Statistics: React.FC<StatisticsProps> = ({
                 <SortableTable
                     rows={tableMetric.rows}
                     noDataText="No results"
+                    thresholds={tableMetric.thresholds}
                     title={tableMetric.title}
                 />
             ))
