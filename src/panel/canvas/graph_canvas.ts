@@ -308,7 +308,12 @@ export default class CanvasDrawer {
     ctx.beginPath();
 
     ctx.moveTo(sourcePoint.x, sourcePoint.y);
-    ctx.lineTo(targetPoint.x, targetPoint.y);
+
+   if (edge.controlPoints()) {
+       ctx.bezierCurveTo(sourcePoint.x, sourcePoint.y, edge.controlPoints()[0].x, edge.controlPoints()[0].y, targetPoint.x, targetPoint.y)
+   } else {
+       ctx.lineTo(targetPoint.x, targetPoint.y);
+   }
 
     const metrics = edge.data('metrics');
     const requestCount = _.get(metrics, 'normal', -1);
@@ -406,6 +411,7 @@ export default class CanvasDrawer {
       yMinLimit,
       yMaxLimit,
       sourcePoint,
+      edge
     };
 
     // normal particles
@@ -484,15 +490,37 @@ export default class CanvasDrawer {
   }
 
   _drawParticle(drawCtx: DrawContext, particles: Particle[], index: number) {
-    const { ctx, now, xDirection, yDirection, xMinLimit, xMaxLimit, yMinLimit, yMaxLimit, sourcePoint } = drawCtx;
+      const { ctx, now, xDirection, yDirection, xMinLimit, xMaxLimit, yMinLimit, yMaxLimit, sourcePoint, edge } = drawCtx;
 
-    const particle = particles[index];
+      const particle = particles[index];
 
-    const timeDelta = now - particle.startTime;
-    const xPos = sourcePoint.x + xDirection * timeDelta * particle.velocity;
-    const yPos = sourcePoint.y + yDirection * timeDelta * particle.velocity;
+      const timeDelta = now - particle.startTime;
 
-    if (xPos > xMaxLimit || xPos < xMinLimit || yPos > yMaxLimit || yPos < yMinLimit) {
+
+
+      let bezier: { x: number , y: number } = null;
+
+      if (edge.controlPoints()) {
+          const timeDelta = now - particle.startTime;
+          const totalTimeMs = 1000
+          const t = timeDelta / totalTimeMs;
+          const p0 = edge.sourceEndpoint()
+          const p1 = edge.controlPoints()[0]
+          const p2 = edge.targetEndpoint()
+          bezier = {
+              x: (1 - t)*(1 - t)*p0.x  + 2*(1 - t)*t*p1.x + t*t*p2.x,
+              y: (1 - t)*(1 - t)*p0.y  + 2*(1 - t)*t*p1.y + t*t*p2.y
+          }
+
+
+      }
+
+      const xPos = bezier ? bezier.x : sourcePoint.x + xDirection * timeDelta * particle.velocity;
+      const yPos = bezier ? bezier.y : sourcePoint.y + yDirection * timeDelta * particle.velocity;
+
+      const tolerance = 20
+
+    if (xPos > xMaxLimit + tolerance || xPos < xMinLimit - tolerance || yPos > yMaxLimit + tolerance || yPos < yMinLimit - tolerance) {
       // remove particle
       particles.splice(index, 1);
     } else {

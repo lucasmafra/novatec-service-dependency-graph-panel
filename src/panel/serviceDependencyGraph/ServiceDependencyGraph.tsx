@@ -110,17 +110,18 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
               },
           },
 
-          {
-              selector: 'edge',
-              style: {
-                  'curve-style': 'straight',
-                  'line-color': 'transparent',
-                  'opacity': 0,
-                  'background-color': 'transparent',
-                  'overlay-color': 'transparent',
-                  'overlay-opacity': 0,
-              },
+        {
+          selector: 'edge',
+          style: {
+              'curve-style': 'bezier',
+              'control-point-step-size': 50,
+              'line-color': 'transparent',
+              'opacity': 0,
+              'background-color': 'transparent',
+              'overlay-color': 'transparent',
+              'overlay-opacity': 0,
           },
+        },
       ],
         wheelSensitivity: 0.125,
     });

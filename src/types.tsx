@@ -268,6 +268,7 @@ export interface ScaleValue {
 export interface DrawContext {
   ctx: CanvasRenderingContext2D;
   now: number;
+  edge: any;
   xDirection: number;
   yDirection: number;
   xMinLimit: number;
