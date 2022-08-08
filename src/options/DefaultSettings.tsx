@@ -52,6 +52,8 @@ export const DefaultSettings: PanelSettings = {
   connections: [],
   metrics: [],
   thresholds: [],
+  tables: [],
+  tableMappings: [],
   externalIcons: [
     {
       pattern: 'web',

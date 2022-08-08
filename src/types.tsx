@@ -17,6 +17,8 @@ export interface PanelSettings {
   drillDownLink: string;
   showBaselines: boolean;
   timeFormat: string;
+  tables: ITable[];
+  tableMappings: ITableMapping[]
 }
 
 export interface DataMapping {
@@ -70,6 +72,17 @@ export interface Metric {
     id: string;
     mappedTo: ElementRef
     queryId: string;
+    filters: MetricFilter[];
+}
+
+export interface MetricFilter {
+    fieldName: string;
+    fieldRegex: string;
+}
+
+export interface TableFilter {
+    fieldName: string;
+    fieldRegex: string;
 }
 
 export interface Threshold {
@@ -78,6 +91,19 @@ export interface Threshold {
     comparisor: ThresholdComparisor;
     valueField: string;
     value: string;
+}
+
+export interface ITable {
+    id: string;
+    label: string;
+    fields: string[];
+}
+
+export interface ITableMapping {
+    id: string;
+    tableId: string;
+    elementRef: ElementRef;
+    filters: TableFilter[];
 }
 
 export interface ThresholdComparisor {
@@ -95,7 +121,7 @@ export enum ThresholdComparisorType {
 }
 
 export interface TableMetric {
-    metric: Metric
+    tableMapping: ITableMapping;
     title: string
     rows: TableRow[]
     thresholds: Threshold[]

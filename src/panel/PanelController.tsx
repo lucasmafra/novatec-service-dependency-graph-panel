@@ -221,7 +221,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
   }
 
     elementHealth(elementRef: ElementRef, tableMetrics: TableMetric[]) {
-        const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.metric.mappedTo, elementRef))
+        const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.tableMapping.elementRef, elementRef))
 
         const healthyRows = relevantTableMetrics.map(t => t.rows.filter(isHealthyRow(t.thresholds)).length)
                                                 .reduce((a, b) => a + b, 0)
@@ -234,15 +234,16 @@ export class PanelController extends PureComponent<Props, PanelState> {
     }
 
     render() {
-      // const data = this.processData();
-      let { nodes, connections, metrics, thresholds } = this.getSettings(true)
+        // const data = this.processData();
+        let { nodes, connections, tables, tableMappings, thresholds } = this.getSettings(true)
 
-      nodes = Object.values(nodes)
-      connections = Object.values(connections)
-      metrics = Object.values(metrics)
-      thresholds = Object.values(thresholds)
+        nodes = Object.values(nodes)
+        connections = Object.values(connections)
+        tables = Object.values(tables)
+        tableMappings = Object.values(tableMappings)
+        thresholds = Object.values(thresholds)
 
-      const tableMetrics = getTableMetrics(nodes, connections, metrics, thresholds, this.props.data.series)
+      const tableMetrics = getTableMetrics(nodes, connections, tables, tableMappings, thresholds, this.props.data.series)
 
       const data = {
           nodes: nodes.map((node) => ({
@@ -250,7 +251,11 @@ export class PanelController extends PureComponent<Props, PanelState> {
                   id: node.id,
                   type: EnGraphNodeType.INTERNAL,
                   label: node.name,
-                  layer: 0
+                  layer: 0,
+                  metrics: {
+                      rate: 37,
+                      error_rate: 37 * (1 - this.elementHealth({ nodeId: node.id }, tableMetrics))
+                  }
               }
           })),
           edges: connections.map(({ id, source, target, label }) => ({

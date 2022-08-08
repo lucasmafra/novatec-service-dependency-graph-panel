@@ -3,9 +3,10 @@ import { PanelSettings } from '../types';
 import { TypeaheadTextField } from './TypeAheadTextfield/TypeaheadTextfield';
 import { IconMapping } from './iconMapping/IconMapping';
 import { NodeMapping } from './nodeMapping/NodeMapping';
-import { MetricMapping } from './metricMapping/MetricMapping';
 import { ThresholdMapping } from './thresholdMapping/ThresholdMapping';
 import { ConnectionMapping } from './connectionMapping/ConnectionMapping';
+import { TableMapping } from './tableMapping/TableMapping';
+import { Table } from './table/Table';
 import { DummyDataSwitch } from './dummyDataSwitch/DummyDataSwitch';
 import { DefaultSettings } from './DefaultSettings';
 
@@ -32,15 +33,24 @@ export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>
           defaultValue: DefaultSettings.connections,
       })
 
-     .addCustomEditor({
-         path: 'metrics',
-         id: 'metricMapping',
-         editor: MetricMapping,
-         name: '',
-         description: 'This setting controls which nodes and connections are mapped to which metric.',
-         category: ['Metrics'],
-         defaultValue: DefaultSettings.metrics,
-     })
+      .addCustomEditor({
+          path: 'tables',
+          id: 'table',
+          editor: Table,
+          name: '',
+          description: 'This setting controls which tables should be added',
+          category: ['Tables'],
+          defaultValue: DefaultSettings.tables,
+      })
+      .addCustomEditor({
+          path: 'tableMappings',
+          id: 'tableMapping',
+          editor: TableMapping,
+          name: '',
+          description: 'This setting controls which tables mappings should be added',
+          category: ['Table Mappings'],
+          defaultValue: DefaultSettings.tableMappings,
+      })
     .addCustomEditor({
         path: 'thresholds',
         id: 'thresholdMapping',

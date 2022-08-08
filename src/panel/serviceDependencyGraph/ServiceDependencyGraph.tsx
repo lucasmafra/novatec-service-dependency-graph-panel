@@ -338,7 +338,7 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
   }
 
   getRelevantTableMetrics(): TableMetric[] {
-      return this.state.tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.metric.mappedTo, this.selectionRef))
+      return this.state.tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.tableMapping.elementRef, this.selectionRef))
   }
 
     render() {
