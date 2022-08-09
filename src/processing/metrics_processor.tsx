@@ -99,3 +99,21 @@ export function getCellHealthState(field: string, value: string, row: any, thres
 export function getCellRelevantThresholds(field: string, value: string, row: any, thresholds: Threshold[]): Threshold[]  {
     return thresholds.filter((t) => t.field === field).filter((t) => _isRowMatch(row, Object.values(t.filters))).filter((t) => t.comparisor)
 }
+
+export function elementThroughput(elementRef: ElementRef, tableMetrics: TableMetric[], tables: ITable[]): number {
+    const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.tableMapping.elementRef, elementRef))
+
+    const tableSum = (acc: number, current: TableMetric): number => {
+        const table = tables.find((t) => t.id === current.tableMapping.tableId)
+
+        if (!table?.throughputField) { return acc }
+
+        return current.rows.reduce((rowsSum: number, row: any): number => {
+            const rowThroughput: number = parseFloat(row[table.throughputField] || '0')
+            return rowsSum + rowThroughput
+        }, 0)
+    }
+
+    return relevantTableMetrics.reduce(tableSum, 0)
+
+}

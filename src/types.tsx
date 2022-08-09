@@ -96,6 +96,7 @@ export interface ITable {
     id: string;
     label: string;
     fields: string[];
+    throughputField?: string;
 }
 
 export interface ITableMapping {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { DataFrame, Field, StandardEditorContext, StandardEditorProps } from '@grafana/data';
-import { FilterPill, HorizontalGroup, Input, Button } from '@grafana/ui';
+import { DataFrame, Field, SelectableValue, StandardEditorContext, StandardEditorProps } from '@grafana/data';
+import { FilterPill, HorizontalGroup, Input, Button, Select, InlineField } from '@grafana/ui';
 import { ITable, PanelSettings } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import * as _ from 'lodash'
@@ -67,6 +67,13 @@ export class Table extends React.PureComponent<Props, State> {
         this.state.onChange.call(path, tables);
     }
 
+    setThroughputField(selected: SelectableValue, index: number) {
+        const { path } = this.state.item;
+        const tables = this.state.context.options[path];
+        tables[index].throughputField = selected.value
+        this.state.onChange.call(path, tables);
+    }
+
     render() {
         const { path } = this.state.item;
         let tables = this.state.context.options[path];
@@ -113,6 +120,20 @@ export class Table extends React.PureComponent<Props, State> {
                                         );
                                     })}
                                 </HorizontalGroup>
+                            </div>
+                        </div>
+                        <div className="gf-form-inline">
+                            <div className="gf-form gf-form--grow">
+                                <InlineField label="Throughput field" tooltip="Throughput fields are used to draw animated particles flowing in the graph">
+                                    <Select
+                                        options={table.fields.map((field) => ({
+                                            label: field,
+                                            value: field
+                                        }))}
+                                        value={table.throughputField}
+                                        onChange={(e) => this.setThroughputField(e, index)}
+                                    />
+                                </InlineField>
                             </div>
                         </div>
                         <div className="gf-form-inline">

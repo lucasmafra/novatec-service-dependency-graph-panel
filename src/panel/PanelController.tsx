@@ -14,7 +14,7 @@ import cytoscape, { EdgeSingular, NodeSingular } from 'cytoscape';
 import '../css/novatec-service-dependency-graph-panel.css';
 import GraphGenerator from 'processing/graph_generator';
 import PreProcessor from 'processing/pre_processor';
-import { getTableMetrics, isHealthyRow } from 'processing/metrics_processor'
+import { getTableMetrics, isHealthyRow, elementThroughput } from 'processing/metrics_processor'
 import data from '../dummy_data_frame';
 import { getTemplateSrv } from '@grafana/runtime';
 import { EnGraphNodeType, ElementRef } from 'types';
@@ -246,21 +246,38 @@ export class PanelController extends PureComponent<Props, PanelState> {
       const tableMetrics = getTableMetrics(nodes, connections, tables, tableMappings, thresholds, this.props.data.series)
 
       const data = {
-          nodes: nodes.map((node) => ({
-              data: {
-                  id: node.id,
-                  type: EnGraphNodeType.INTERNAL,
-                  label: node.name,
-                  layer: 0,
-                  metrics: {
-                      rate: 37,
-                      error_rate: 37 * (1 - this.elementHealth({ nodeId: node.id }, tableMetrics))
+          nodes: nodes.map((node) => {
+              const throughput = elementThroughput({ nodeId: node.id }, tableMetrics, tables)
+              return {
+                  data: {
+                      id: node.id,
+                      type: EnGraphNodeType.INTERNAL,
+                      label: node.name,
+                      layer: 0,
+                      metrics: {
+                          rate: throughput,
+                          error_rate: throughput * (1 - this.elementHealth({ nodeId: node.id }, tableMetrics))
+                      }
                   }
               }
-          })),
-          edges: connections.map(({ id, source, target, label }) => ({
-              source, target, data: { id, source, target, label, metrics: { rate: 37, error_rate: 37 * (1 - this.elementHealth({ connectionId: id }, tableMetrics)) } }
-          }))
+          }),
+          edges: connections.map(({ id, source, target, label }) => {
+              const throughput = elementThroughput({ connectionId: id }, tableMetrics, tables)
+              return {
+                  source,
+                  target,
+                  data: {
+                      id,
+                      source,
+                      target,
+                      label,
+                      metrics: {
+                          rate: throughput,
+                          error_rate: throughput * (1 - this.elementHealth({ connectionId: id }, tableMetrics))
+                      }
+                  }
+              }
+          })
       }
 
     const error = this.getError();
