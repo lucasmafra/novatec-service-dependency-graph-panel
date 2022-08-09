@@ -10,7 +10,10 @@ import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Thres
 function _applyFiltersToRows(rows: TableRow[], filters: TableFilter[]): TableRow[] {
     const validFilters = filters.filter((f) => f.fieldName.trim().length && f.fieldRegex.trim().length)
     return validFilters.reduce((acc, filter) => {
-        return [...acc.filter((r: any) => typeof r[filter?.fieldName] === "string" ? r[filter.fieldName].match(new RegExp(filter.fieldRegex)) : true)]
+        return [...acc.filter((r: any) => {
+            if (!r[filter.fieldName]) return false
+            return r[filter.fieldName].toString().match(new RegExp(filter.fieldRegex))
+        })]
     }, rows)
 }
 
