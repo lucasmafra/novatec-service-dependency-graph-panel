@@ -4,7 +4,7 @@ import {
 import supportedThresholds from '../options/thresholdMapping/supportedThresholds';
 import * as _ from 'lodash'
 
-import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Threshold, ITable, ITableMapping } from '../types';
+import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Threshold, ITable, ITableMapping, ThresholdFilter } from '../types';
 
 function _applyFiltersToRows(rows: TableRow[], filters: TableFilter[]): TableRow[] {
     const validFilters = filters.filter((f) => f.fieldName.trim().length && f.fieldRegex.trim().length)
@@ -25,7 +25,7 @@ function _seriesToTableRows(series: DataFrame[], tableMapping: ITableMapping, ta
     series.forEach((dataFrame) => {
         for (let i = 0; i < dataFrame.length; i++) {
             rows.push(_.reduce(dataFrame.fields, (acc, field) => {
-                if (Object.values(table.fields).includes(field.name)) {
+                if (Object.values(table.fields).includes(field.config?.displayName || field.name)) {
                     return { ...acc, [field.config?.displayName || field.name] : _roundTo2DecimalPlaces(field.values.get(i)) };
                 }
                 return acc
@@ -40,15 +40,14 @@ function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], ta
         return  _.isEqual(tableMapping.elementRef, elementRef)
     })
 
-    // const relevantThresholds = thresholds.filter((t) => tableMappings.find((metric) => metric.id === t.metricId))
-
     return relevantTableMappings.map((tableMapping) => {
         const table = tables.find((table) => table.id === tableMapping.tableId)
+        const relevantThresholds = thresholds.filter((t) => t.tableId === table.id)
         return {
             tableMapping: tableMapping,
             title: table.label,
             rows: _seriesToTableRows(series, tableMapping, table),
-            thresholds: []
+            thresholds: relevantThresholds
         }
     })
 }
@@ -60,9 +59,26 @@ export function getTableMetrics(nodes: Node[], connections: Connection[], tables
 }
 
 
+function _isRowMatch(row: any, filters: ThresholdFilter[]): boolean {
+    return filters.map((filter) => {
+        if (filter.fieldName.trim().length === 0) { // ignore empty filters
+            return true
+        }
+        return row[filter.fieldName] && row[filter.fieldName].match(new RegExp(filter.fieldRegex))
+    }).every(Boolean)
+}
+
 export function isHealthyRow(thresholds: Threshold[]) {
     return (row: any) =>
-        thresholds.map((threshold) => ({ ...threshold, comparisor: supportedThresholds.find(t => t.type === threshold.comparisor.type) }))
-                  .map((threshold) => !threshold.comparisor.exceeds(row[threshold.valueField], threshold.value))
+        thresholds.map((threshold) => ({ ...threshold, comparisor: supportedThresholds.find(t => t.type === threshold.comparisor?.type) }))
+                  .map((threshold) => {
+                      if (!threshold.comparisor) return true
+                      if (_isRowMatch(row, Object.values(threshold.filters))) {
+                          const exceeds = threshold.comparisor.exceeds(row[threshold.field], threshold.value)
+                          return !exceeds
+                      } else {
+                          return true
+                      }
+                  })
                   .every(Boolean)
 }

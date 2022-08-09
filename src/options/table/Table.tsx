@@ -45,7 +45,7 @@ export class Table extends React.PureComponent<Props, State> {
 
     getAllFields(): string[] {
         const { data } = this.props.context;
-        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.name)
+        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name)
     }
 
     onFieldToggle(field: string, index: number) {

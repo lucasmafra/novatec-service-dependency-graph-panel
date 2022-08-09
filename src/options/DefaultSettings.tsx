@@ -50,7 +50,6 @@ export const DefaultSettings: PanelSettings = {
   ],
   nodes: [],
   connections: [],
-  metrics: [],
   thresholds: [],
   tables: [],
   tableMappings: [],

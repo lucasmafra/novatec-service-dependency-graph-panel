@@ -1,8 +1,10 @@
 import React from 'react';
-import { StandardEditorContext, StandardEditorProps } from '@grafana/data';
-import { Threshold, PanelSettings, Metric, ThresholdComparisor } from '../../types';
+import { StandardEditorContext, StandardEditorProps, SelectableValue, Field, DataFrame } from '@grafana/data';
+import { Button, HorizontalGroup, InlineField, Select, IconButton, Input } from '@grafana/ui';
+import { Threshold, PanelSettings, ITable } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import supportedThresholds from './supportedThresholds';
+import * as _ from 'lodash'
 
 interface Props extends StandardEditorProps<string, PanelSettings> {
     item: any;
@@ -31,7 +33,7 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
   addThreshold() {
     const { path } = this.state.item;
     const thresholds = this.state.context.options[path];
-    thresholds.push({ id: uuidv4() });
+    thresholds.push({ id: uuidv4(), filters: [] });
     this.state.onChange.call(path, thresholds);
   }
 
@@ -42,50 +44,80 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
     this.state.onChange.call(path, thresholds);
   }
 
-  setComparisor(event: React.ChangeEvent<HTMLSelectElement>, index: number) {
+  setComparisor(selected: SelectableValue, index: number) {
       const { path } = this.state.item;
       const thresholds = this.state.context.options[path];
-      const comparisor = supportedThresholds.find((c) => c.type.toString() === event.currentTarget.value.toString());
+      const comparisor = supportedThresholds.find((c) => c.type.toString() === selected.value.toString());
       thresholds[index].comparisor = { ...comparisor, exceeds: (a: any, b: any) => comparisor.exceeds(a, b) }
       this.state.onChange.call(path, thresholds);
   }
 
-    setMetricId(event: React.ChangeEvent<HTMLSelectElement>, index: number) {
-        const { path } = this.state.item;
-        const thresholds = this.state.context.options[path];
-        thresholds[index].metricId = event.currentTarget.value.toString();
-        this.state.onChange.call(path, thresholds);
-    }
-
-    setValueField(event: React.ChangeEvent<HTMLSelectElement>, index: number) {
-        const { path } = this.state.item;
-        const thresholds = this.state.context.options[path];
-        thresholds[index].valueField = event.currentTarget.value.toString();
-        this.state.onChange.call(path, thresholds);
-    }
-
-    setValue(event: React.ChangeEvent<HTMLInputElement>, index: number) {
+    setValue(event: React.FormEvent<HTMLInputElement>, index: number) {
         const { path } = this.state.item;
         const thresholds = this.state.context.options[path];
         thresholds[index].value = event.currentTarget.value.toString();
         this.state.onChange.call(path, thresholds);
     }
 
-    getMetrics(): Metric[] {
-        return this.state.context.options['metrics'];
+    getTables(): ITable[] {
+        return this.state.context.options['tables']
     }
 
-    getMetricFields(threshold: Threshold): string[] {
+    setTableId(selected: SelectableValue, index: number) {
+        const { path } = this.state.item;
+        const thresholds = this.state.context.options[path];
+        thresholds[index].tableId = selected.value
+        this.state.onChange.call(path, thresholds);
+    }
+
+    getTable(tableId: string): ITable {
+        const tables = this.getTables()
+        return tables.find((table) => table.id === tableId)
+    }
+
+    setField(selected: SelectableValue, index: number) {
+        const { path } = this.state.item;
+        const thresholds = this.state.context.options[path];
+        thresholds[index].field = selected.value
+        this.state.onChange.call(path, thresholds);
+    }
+
+    getAllFields(): string[] {
         const { data } = this.props.context;
-        const queryId = this.getMetrics().find((m) => m.id === threshold.metricId)?.queryId
-        const fields = data.find((dataFrame) => dataFrame.refId === queryId)?.fields
-        if (!fields) return []
-        return fields.filter((f) => f.type !== "time").map((f) => f.name)
+        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name)
+    }
+
+    addFilter(index: number) {
+        const { path } = this.state.item;
+        const thresholds = this.state.context.options[path];
+        thresholds[index].filters.push({ fieldName: '', fieldRegex: ''})
+        this.state.onChange.call(path, thresholds);
+    }
+
+    setFilterField(selected: SelectableValue, index: number, filterIndex: number) {
+      const { path } = this.state.item;
+      const thresholds = this.state.context.options[path];
+      thresholds[index].filters[filterIndex].fieldName = selected.value
+      this.state.onChange.call(path, thresholds);
+  }
+
+    setFilterRegex(event: React.FormEvent<HTMLInputElement>, index: number, filterIndex: number) {
+        const { path } = this.state.item;
+        const thresholds = this.state.context.options[path];
+        thresholds[index].filters[filterIndex].fieldRegex = event.currentTarget.value.toString();
+        this.state.onChange.call(path, thresholds);
+    }
+
+    removeFilter(index: number, filterIndex: number) {
+        const { path } = this.state.item;
+        const thresholds = this.state.context.options[path];
+        thresholds[index].filters.splice(filterIndex, 1);
+        this.state.onChange.call(path, thresholds);
     }
 
     render() {
         const { path } = this.state.item;
-        let thresholds = this.state.context.options[path];
+        let thresholds: Threshold[] = this.state.context.options[path];
 
         if (thresholds === undefined) {
             thresholds = this.state.item.defaultValue;
@@ -96,75 +128,122 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
             });
         }
 
-        return (
-            <div>
-                <div>
-                    {thresholds.map((threshold: Threshold, index: number) => (
-                        <div className="gf-form-inline">
-                            <div className="gf-form width-100">
-                                <label className="gf-form-label no-background no-padding-left width-half">Threshold</label>
-                                <a className="gf-form-label tight-form-func no-background" onClick={() => this.removeThreshold(index)}>
-                                    <i className="fa fa-trash"></i>
-                                </a>
-                            </div>
-                            <div className="gf-form width-100">
-                                <select
-                                    className="input-small gf-form-input width-100"
-                                    value={threshold.metricId}
-                                    onChange={(e) => this.setMetricId(e, index)}
-                                >
-                                    <option value="" selected disabled hidden>Metric</option>
-                                    {this.getMetrics().map((metric: Metric) => (
-                                        <option key={metric.id} value={metric.id}>
-                                            {metric.queryId}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="gf-form">
+                return (
+                    <div>
+                        {thresholds.map((threshold: Threshold, index: number) => (
+                            <>
+                                <div className="gf-form-inline" style={{ marginTop: 16 }}>
+                                    <div className="gf-form">
+                                        <div className="gf-form-label width-8">Select table</div>
+                                        <Select
+                                            className="width-18"
+                                            options={this.getTables().map((table) => ({
+                                                label: table.label,
+                                                value: table.id,
+                                            }))}
+                                            value={threshold.tableId}
+                                            onChange={(e) => this.setTableId(e, index)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="gf-form-inline">
+                                    <div className="gf-form">
+                                        <div className="gf-form-label width-8">Field</div>
+                                        <Select
+                                            className="width-18"
+                                            options={this.getTable(threshold.tableId)?.fields.map((f) => ({
+                                                value: f, label: f
+                                            }) )}
+                                            value={threshold.field}
+                                            onChange={(e) => this.setField(e, index)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="gf-form-inline">
+                                    <div className="gf-form">
+                                        <div className="gf-form-label width-8">Value</div>
+                                        <Select
+                                            className="width-18"
+                                            options={supportedThresholds.map((comparisor) => ({
+                                                value: comparisor.type, label: comparisor.label
+                                            }) )}
+                                            value={threshold.comparisor?.type}
+                                            onChange={(e) => this.setComparisor(e, index)}
+                                        />
+                                        <Input
+                                            placeholder={'value'}
+                                            value={threshold.value}
+                                            onChange={(e) => this.setValue(e, index)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="gf-form-inline">
+                                    <h6 style={{ height: 32, display: 'flex', alignItems: 'center' }}>Filters</h6>
+                                    <div style={{ height: 32, display: 'flex', alignItems: 'center', marginLeft: 8 }}>
+                                        <IconButton
+                                            variant="primary"
+                                            size="sm"
+                                            name="plus-circle"
+                                            onClick={() => this.addFilter(index) }
+                                        />
+                                    </div>
+                                </div>
+                                {threshold.filters.map((filter, filterIndex) => (
+                                    <div className="gf-form-inline">
+                                        <div className="gf-form gf-form--grow">
+                                            <HorizontalGroup spacing="xs" align="flex-start">
+                                                <InlineField label="Field">
+                                                    <Select
+                                                        options={this.getAllFields().map((field) => ({
+                                                            label: field,
+                                                            value: field,
+                                                        }))}
+                                                        value={filter.fieldName}
+                                                        onChange={(e) => this.setFilterField(e, index, filterIndex)}
+                                                    />
+                                                </InlineField>
+                                                <InlineField label="Regex">
+                                                    <Input
+                                                        placeholder={'regex pattern'}
+                                                        value={filter.fieldRegex}
+                                                        onChange={(e) => this.setFilterRegex(e, index, filterIndex)}
+                                                    />
+                                                </InlineField>
+                                                <div style={{ height: 36, display: 'flex', alignItems: 'center' }}>
+                                                    <IconButton
+                                                        size="sm"
+                                                        name="minus-circle"
+                                                        variant="destructive"
+                                                        onClick={() => this.removeFilter(index, filterIndex) }
+                                                    />
+                                                </div>
+                                            </HorizontalGroup>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="gf-form-inline">
+                                    <div className="gf-form">
+                                        <Button
+                                            className="tiny-button"
+                                            size="xs"
+                                            variant="destructive"
+                                            onClick={() => this.removeThreshold(index) }
+                                            icon={'trash-alt'}>Remove threshold</Button>
+                                    </div>
+                                </div>
+                            </>
+                        ))}
+                        <Button
+                            style={{marginTop: 32}}
+                            size="xs"
+                            variant="primary"
+                            icon={'plus'}
+                            onClick={() => this.addThreshold()}
+                        >
+                            Add threshold
+                        </Button>
+                    </div>
+                );
 
-                                <select
-                                    className="input-small gf-form-input"
-                                    value={threshold.valueField}
-                                    onChange={(e) => this.setValueField(e, index)}
-                                >
-                                    <option value="" selected disabled hidden>Value field</option>
-                                    {this.getMetricFields(threshold).map((field: string) => (
-                                        <option key={field} value={field}>
-                                            {field}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="input-small gf-form-input"
-                                    value={threshold.comparisor?.type}
-                                    onChange={(e) => this.setComparisor(e, index)}
-                                >
-                                    <option value="" selected disabled hidden>Comparisor</option>
-                                    {supportedThresholds.map((comparisor: ThresholdComparisor) => (
-                                        <option key={comparisor.type} value={comparisor.type}>
-                                            {comparisor.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <input
-                                    type="text"
-                                    className="input-small gf-form-input"
-                                    value={threshold.value}
-                                    placeholder={"0.1"}
-                                    onChange={(e) => this.setValue(e, index)}
-                                />
-                            </div>
-                        </div>
-                    ))}
-            </div>
-            <button
-                className="btn navbar-button navbar-button--primary add-button"
-                onClick={() => this.addThreshold()}
-            >
-                + Add Threshold
-            </button>
-            </div>
-        );
     }
 }

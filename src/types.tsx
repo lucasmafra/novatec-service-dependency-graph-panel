@@ -10,7 +10,6 @@ export interface PanelSettings {
   icons: IconResource[];
   nodes: Node[];
   connections: Connection[];
-  metrics: Metric[];
   thresholds: Threshold[];
   externalIcons: IconResource[];
   dataMapping: DataMapping;
@@ -68,14 +67,7 @@ export interface Connection {
 
 export type ElementRef = { nodeId: string } | { connectionId: string };
 
-export interface Metric {
-    id: string;
-    mappedTo: ElementRef
-    queryId: string;
-    filters: MetricFilter[];
-}
-
-export interface MetricFilter {
+export interface ThresholdFilter {
     fieldName: string;
     fieldRegex: string;
 }
@@ -87,9 +79,10 @@ export interface TableFilter {
 
 export interface Threshold {
     id: string;
-    metricId: string;
+    tableId: string;
     comparisor: ThresholdComparisor;
-    valueField: string;
+    filters: ThresholdFilter[];
+    field: string;
     value: string;
 }
 

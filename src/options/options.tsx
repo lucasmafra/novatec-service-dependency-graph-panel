@@ -1,6 +1,5 @@
 import { PanelOptionsEditorBuilder } from '@grafana/data';
 import { PanelSettings } from '../types';
-import { TypeaheadTextField } from './TypeAheadTextfield/TypeaheadTextfield';
 import { IconMapping } from './iconMapping/IconMapping';
 import { NodeMapping } from './nodeMapping/NodeMapping';
 import { ThresholdMapping } from './thresholdMapping/ThresholdMapping';
@@ -60,143 +59,6 @@ export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>
         category: ['Thresholds'],
         defaultValue: DefaultSettings.thresholds,
     })
-
-      //Connection Mapping
-        .addCustomEditor({
-            path: 'dataMapping.aggregationType',
-            id: 'aggregationType',
-            editor: TypeaheadTextField,
-            name: 'Component Column',
-            category: ['Connection Mapping'],
-            defaultValue: DefaultSettings.dataMapping.aggregationType,
-        })
-
-      .addCustomEditor({
-        path: 'dataMapping.sourceColumn',
-        id: 'sourceComponentPrefix',
-        editor: TypeaheadTextField,
-        name: 'Source Component Column',
-        category: ['Connection Mapping'],
-        defaultValue: DefaultSettings.dataMapping.sourceColumn,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.targetColumn',
-        id: 'targetComponentPrefix',
-        name: 'Target Component Column',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.targetColumn,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.namespaceColumn',
-        id: 'namespaceColumn',
-        name: 'Namespace Column',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.namespaceColumn,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.nameSpaceDelimiter',
-        id: 'nameSpaceDelimiter',
-        name: 'Namespace Delimiter',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.namespaceDelimiter,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.type',
-        id: 'type',
-        name: 'Type',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.type,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.extOrigin',
-        id: 'externalOrigin',
-        name: 'External Origin',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.extOrigin,
-      })
-
-      .addCustomEditor({
-        path: 'dataMapping.extTarget',
-        id: 'externalTarget',
-        name: 'External Target',
-        category: ['Connection Mapping'],
-        editor: TypeaheadTextField,
-        defaultValue: DefaultSettings.dataMapping.extTarget,
-      })
-
-      //Data Mapping
-      .addCustomEditor({
-        id: 'responseTime',
-        path: 'dataMapping.responseTimeColumn',
-        name: 'Response Time Column',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.responseTimeColumn,
-      })
-
-      .addCustomEditor({
-        id: 'requestRateColumn',
-        path: 'dataMapping.requestRateColumn',
-        name: 'Request Rate Column',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.requestRateColumn,
-      })
-
-      .addCustomEditor({
-        id: 'errorRateColumn',
-        path: 'dataMapping.errorRateColumn',
-        name: 'Error Rate Column',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.errorRateColumn,
-      })
-
-      .addCustomEditor({
-        id: 'responseTimeOutgoingColumn',
-        path: 'dataMapping.responseTimeOutgoingColumn',
-        name: 'Response Time Column (Outgoing)',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.responseTimeOutgoingColumn,
-      })
-
-      .addCustomEditor({
-        id: 'requestRateOutgoingColumn',
-        path: 'dataMapping.requestRateOutgoingColumn',
-        name: 'Request Rate Column (Outgoing)',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.requestRateOutgoingColumn,
-      })
-
-      .addCustomEditor({
-        id: 'errorRateOutgoingColumn',
-        path: 'dataMapping.errorRateOutgoingColumn',
-        name: 'Error Rate Column (Outgoing)',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.errorRateOutgoingColumn,
-      })
-
-      .addCustomEditor({
-        id: 'baselineRtUpper',
-        path: 'dataMapping.baselineRtUpper',
-        name: 'Response Time Baseline (Upper)',
-        editor: TypeaheadTextField,
-        category: ['Data Mapping'],
-        defaultValue: DefaultSettings.dataMapping.baselineRtUpper,
-      })
 
       //General Settings
       .addBooleanSwitch({
@@ -317,14 +179,6 @@ export const optionsBuilder = (builder: PanelOptionsEditorBuilder<PanelSettings>
           'The given type column is matched by the regex pattern provided in the "Target Name(Regex) column.',
         category: ['External Icon Mapping'],
         defaultValue: DefaultSettings.externalIcons,
-      })
-
-      //Tracing Drilldown
-      .addTextInput({
-        path: 'drillDownLink',
-        name: 'Backend URL',
-        category: ['Tracing Drilldown'],
-        defaultValue: DefaultSettings.drillDownLink,
       })
   );
 };
