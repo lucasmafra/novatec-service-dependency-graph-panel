@@ -84,7 +84,7 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
 
     getAllFields(): string[] {
         const { data } = this.props.context;
-        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name)
+        return _.uniqWith(_.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name), _.isEqual)
     }
 
     addFilter(index: number) {
@@ -134,9 +134,8 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
                             <>
                                 <div className="gf-form-inline" style={{ marginTop: 16 }}>
                                     <div className="gf-form">
-                                        <div className="gf-form-label width-8">Select table</div>
+                                        <div className="gf-form-label">Select table</div>
                                         <Select
-                                            className="width-18"
                                             options={this.getTables().map((table) => ({
                                                 label: table.label,
                                                 value: table.id,
@@ -148,9 +147,8 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
                                 </div>
                                 <div className="gf-form-inline">
                                     <div className="gf-form">
-                                        <div className="gf-form-label width-8">Field</div>
+                                        <div className="gf-form-label">Field</div>
                                         <Select
-                                            className="width-18"
                                             options={this.getTable(threshold.tableId)?.fields.map((f) => ({
                                                 value: f, label: f
                                             }) )}
@@ -161,9 +159,8 @@ export class ThresholdMapping extends React.PureComponent<Props, State> {
                                 </div>
                                 <div className="gf-form-inline">
                                     <div className="gf-form">
-                                        <div className="gf-form-label width-8">Value</div>
+                                        <div className="gf-form-label">Value</div>
                                         <Select
-                                            className="width-18"
                                             options={supportedThresholds.map((comparisor) => ({
                                                 value: comparisor.type, label: comparisor.label
                                             }) )}

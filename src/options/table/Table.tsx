@@ -45,7 +45,7 @@ export class Table extends React.PureComponent<Props, State> {
 
     getAllFields(): string[] {
         const { data } = this.props.context;
-        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name)
+        return _.uniqWith(_.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name), _.isEqual)
     }
 
     onFieldToggle(field: string, index: number) {
@@ -94,9 +94,8 @@ export class Table extends React.PureComponent<Props, State> {
                     <>
                         <div className="gf-form-inline" style={{ marginTop: 8 }}>
                             <div className="gf-form">
-                                <div className="gf-form-label width-8">Table name</div>
+                                <div className="gf-form-label">Table name</div>
                                 <Input
-                                    className="width-18"
                                     value={table.label}
                                     placeholder={'label'}
                                     onChange={(e) => this.setLabel(e, index)}
@@ -105,7 +104,7 @@ export class Table extends React.PureComponent<Props, State> {
                         </div>
                         <div className="gf-form-inline">
                             <div className="gf-form gf-form--grow">
-                                <div className="gf-form-label width-8">Fields</div>
+                                <div className="gf-form-label">Fields</div>
                                 <HorizontalGroup spacing="xs" align="flex-start" wrap>
                                     {this.getAllFields().map((field, i) => {
                                         return (

@@ -1,11 +1,12 @@
 import CanvasDrawer from './graph_canvas';
 import _ from 'lodash';
 import { Particles, Particle, IntGraphMetrics } from '../../types';
+import { EdgeCollection } from 'cytoscape';
 
 export default class ParticleEngine {
   drawer: CanvasDrawer;
 
-  maxVolume = 800;
+  maxSpawnProbability = 0.25;
 
   minSpawnPropability = 0.004;
 
@@ -55,10 +56,23 @@ export default class ParticleEngine {
     return false;
   }
 
+    getParticleMaxVolume(edges: EdgeCollection): number {
+      return _.max(edges.map((edge) => {
+          const metrics: IntGraphMetrics = edge.data('metrics');
+          const rate = _.defaultTo(metrics.rate, 0);
+          const error_rate = _.defaultTo(metrics.error_rate, 0);
+          return rate + error_rate
+      }))
+    }
+
   _spawnParticles() {
     const cy = this.drawer.cytoscape;
 
     const now = Date.now();
+
+
+    const particleMaxVolume = this.getParticleMaxVolume(cy.edges())
+
     cy.edges().forEach((edge) => {
       let particles: Particles = edge.data('particles');
       const metrics: IntGraphMetrics = edge.data('metrics');
@@ -70,6 +84,7 @@ export default class ParticleEngine {
       const rate = _.defaultTo(metrics.rate, 0);
       const error_rate = _.defaultTo(metrics.error_rate, 0);
       const volume = rate + error_rate;
+      const normalizedVolume = (volume / particleMaxVolume)
 
       let errorRate;
       if (rate >= 0 && error_rate >= 0) {
@@ -87,7 +102,7 @@ export default class ParticleEngine {
       }
 
       if (metrics && volume > 0) {
-        const spawnPropability = Math.min(volume / this.maxVolume, 1.0);
+        const spawnPropability = Math.min(normalizedVolume * this.maxSpawnProbability, 1.0);
         for (let i = 0; i < 5; i++) {
           if (Math.random() <= spawnPropability + this.minSpawnPropability) {
             const particle: Particle = {

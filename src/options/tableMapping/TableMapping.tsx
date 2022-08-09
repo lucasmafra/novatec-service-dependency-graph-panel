@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataFrame, Field, SelectableValue, StandardEditorContext, StandardEditorProps } from '@grafana/data';
 import { Select, HorizontalGroup, Button, InlineField, Input, IconButton } from '@grafana/ui';
-import { ITable, Node, Connection, PanelSettings, ITableMapping } from '../../types';
+import { ITable, Node, Connection, PanelSettings, ITableMapping, ElementRef } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import * as _ from 'lodash'
 
@@ -45,7 +45,7 @@ export class TableMapping extends React.PureComponent<Props, State> {
 
     getAllFields(): string[] {
         const { data } = this.props.context;
-        return _.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name)
+        return _.uniqWith(_.flatten(data.map((dataFrame: DataFrame) => dataFrame.fields)).map((field: Field) => field.config?.displayName || field.name), _.isEqual)
     }
 
     getTables(): ITable[] {
@@ -62,7 +62,8 @@ export class TableMapping extends React.PureComponent<Props, State> {
     setElementRef(selected: SelectableValue, index: number) {
         const { path } = this.state.item;
         const tableMappings = this.state.context.options[path];
-        tableMappings[index].elementRef = selected.value
+        const selectedValue = selected.value.split(':')[0] === 'node' ? { nodeId:  selected.value.split(':')[1] } : { connectionId : selected.value.split(':')[1]  }
+        tableMappings[index].elementRef = selectedValue
         this.state.onChange.call(path, tableMappings);
     }
 
@@ -102,6 +103,18 @@ export class TableMapping extends React.PureComponent<Props, State> {
         this.state.onChange.call(path, tableMappings);
     }
 
+    elementRefToValueId(elementRef: ElementRef) {
+        let result: string = undefined
+        if (!elementRef)  {
+            result = ''
+        } else if ('nodeId' in elementRef) {
+            result = `node:${elementRef.nodeId}`
+        } else {
+            result =  `connection:${elementRef.connectionId}`
+        }
+
+        return result
+    }
     render() {
         const { path } = this.state.item;
         let tableMappings = this.state.context.options[path];
@@ -115,16 +128,14 @@ export class TableMapping extends React.PureComponent<Props, State> {
             });
         }
 
-
         return (
             <div>
                 {tableMappings.map((tableMapping: ITableMapping, index: number) => (
                     <>
                         <div className="gf-form-inline" style={{ marginTop: 16 }}>
                             <div className="gf-form">
-                                <div className="gf-form-label width-8">Select table</div>
+                                <div className="gf-form-label">Select table</div>
                                 <Select
-                                    className="width-18"
                                     options={this.getTables().map((table) => ({
                                         label: table.label,
                                         value: table.id,
@@ -136,28 +147,22 @@ export class TableMapping extends React.PureComponent<Props, State> {
                         </div>
                         <div className="gf-form-inline">
                             <div className="gf-form">
-                                <div className="gf-form-label width-8">Select element</div>
+                                <div className="gf-form-label">Select element</div>
                                 <Select
-                                    className="width-18"
-                                    options={[
-                                        {
-                                            label: "Nodes",
-                                            options: this.getNodes().map((n) => ({
-                                                label: n.name,
-                                                value: { nodeId: n.id }
-                                            }) )
-
-                                        },
-                                        {
-                                            label: "Connections",
-                                            options: this.getConnections().map((c) => ({
-                                                label: c.label,
-                                                value: { connectionId: c.id }
-                                            }) )
-
-                                        },
-                                    ]}
-                                    value={tableMapping.tableId}
+                                    options={[{
+                                        label: "Nodes",
+                                        options: this.getNodes().map((n) => ({
+                                            label: n.name,
+                                            value: `node:${n.id}`
+                                        }))
+                                    }, {
+                                        label: "Connections",
+                                        options: this.getConnections().map((c) => ({
+                                            label: c.label,
+                                            value: `connection:${c.id}`
+                                        }))
+                                    }]}
+                                    value={this.elementRefToValueId(tableMapping?.elementRef)}
                                     onChange={(e) => this.setElementRef(e, index)}
                                 />
                             </div>

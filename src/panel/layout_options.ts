@@ -7,7 +7,7 @@ const options = {
   fit: true, // set by controller // on every layout reposition of nodes, fit the viewport
   padding: 90, // padding around the simulation
   boundingBox: undefined as undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
-  nodeDimensionsIncludeLabels: false, // whether labels should be included in determining the space used by a node
+  nodeDimensionsIncludeLabels: true, // whether labels should be included in determining the space used by a node
 
   // layout event callbacks
   ready: function () {}, // on layoutready

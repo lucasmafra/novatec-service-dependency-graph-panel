@@ -50,6 +50,7 @@ function getTableHeaders(rows: TableRow[], thresholds: Threshold[]): IntTableHea
                 return (
                     <div style={{ background,
                                   height: '100%',
+                                  minHeight: 27,
                                   width: '100%',
                                   padding: '3px 5px' }}>
                         {cell}
@@ -59,6 +60,7 @@ function getTableHeaders(rows: TableRow[], thresholds: Threshold[]): IntTableHea
             return (
                 <div style={{ background,
                               height: '100%',
+                              minHeight: 27,
                               width: '100%',
                               display: 'flex',
                               alignItems: 'center',

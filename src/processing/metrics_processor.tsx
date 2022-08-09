@@ -7,6 +7,7 @@ import * as _ from 'lodash'
 
 import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Threshold, ITable, ITableMapping, ThresholdFilter } from '../types';
 
+
 function _applyFiltersToRows(rows: TableRow[], filters: TableFilter[]): TableRow[] {
     const validFilters = filters.filter((f) => f.fieldName.trim().length && f.fieldRegex.trim().length)
     return validFilters.reduce((acc, filter) => {
@@ -28,15 +29,18 @@ function _seriesToTableRows(series: DataFrame[], tableMapping: ITableMapping, ta
     const rows = new Array<TableRow>()
     series.forEach((dataFrame) => {
         for (let i = 0; i < dataFrame.length; i++) {
-            rows.push(_.reduce(dataFrame.fields, (acc, field) => {
-                if (Object.values(table.fields).includes(field.config?.displayName || field.name)) {
+            rows.push(_.reduce(dataFrame.fields, (acc: any, field) => {
+                if (!acc[field.config?.displayName || field.name] && Object.values(table.fields).includes(field.config?.displayName || field.name)) {
                     return { ...acc, [field.config?.displayName || field.name] : _roundTo2DecimalPlaces(field.values.get(i)) };
                 }
                 return acc
             }, {}))
         }
     })
-    return _applyFiltersToRows(rows, Object.values(tableMapping.filters))
+
+    const tableRows = _.uniqWith((_applyFiltersToRows(rows, Object.values(tableMapping.filters))), _.isEqual)
+
+    return tableRows
 }
 
 function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], tables: ITable[], tableMappings: ITableMapping[], thresholds: Threshold[]): TableMetric[] {
@@ -90,7 +94,7 @@ export function isHealthyRow(thresholds: Threshold[]) {
 export function getCellHealthState(field: string, value: string, row: any, thresholds: Threshold[]): CellHealthState  {
     const relevantThresholds = thresholds.filter((t) => t.field === field).filter((t) => _isRowMatch(row, Object.values(t.filters))).filter((t) => t.comparisor)
 
-    if (relevantThresholds.length === 0) { return CellHealthState.UNKNOWN }
+    if (relevantThresholds.length === 0 || !value) { return CellHealthState.UNKNOWN }
 
     if (relevantThresholds.map((t) => !t.comparisor.exceeds(value, t.value)).every(Boolean)) {
         return CellHealthState.HEALTHY

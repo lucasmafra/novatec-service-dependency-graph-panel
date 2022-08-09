@@ -496,8 +496,6 @@ export default class CanvasDrawer {
 
       const timeDelta = now - particle.startTime;
 
-
-
       let bezier: { x: number , y: number } = null;
 
       if (edge.controlPoints()) {
