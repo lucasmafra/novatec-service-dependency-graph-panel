@@ -608,7 +608,7 @@ export default class CanvasDrawer {
 
     // draw statistics
     if (cy.zoom() > 1) {
-      this._drawNodeStatistics(ctx, node);
+      // this._drawNodeStatistics(ctx, node);
     }
   }
 
