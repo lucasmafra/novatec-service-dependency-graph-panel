@@ -359,15 +359,6 @@ export class ServiceDependencyGraph extends PureComponent<PanelState, PanelState
             <button className="btn navbar-button width-100" onClick={() => this.fit()}>
               <i className="fa fa-dot-circle-o"></i>
             </button>
-            <button className="btn navbar-button width-100" onClick={() => this.props.layerIncreaseFunction()}>
-              <i className="fa fa-plus"></i>
-            </button>
-            <button className="btn navbar-button width-100" onClick={() => this.props.layerDecreaseFunction()}>
-              <i className="fa fa-minus"></i>
-            </button>
-            <span>
-              Layer {this.state.controller.state.currentLayer}/{this.state.maxLayer}
-            </span>
           </div>
         </div>
         <Statistics
