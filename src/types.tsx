@@ -77,6 +77,12 @@ export interface TableFilter {
     fieldRegex: string;
 }
 
+export enum CellHealthState {
+    HEALTHY,
+    UNHEALTHY,
+    UNKNOWN
+}
+
 export interface Threshold {
     id: string;
     tableId: string;

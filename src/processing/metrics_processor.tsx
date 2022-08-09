@@ -2,6 +2,7 @@ import {
     DataFrame,
 } from '@grafana/data';
 import supportedThresholds from '../options/thresholdMapping/supportedThresholds';
+import { CellHealthState }  from 'types'
 import * as _ from 'lodash'
 
 import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Threshold, ITable, ITableMapping, ThresholdFilter } from '../types';
@@ -47,7 +48,7 @@ function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], ta
             tableMapping: tableMapping,
             title: table.label,
             rows: _seriesToTableRows(series, tableMapping, table),
-            thresholds: relevantThresholds
+            thresholds: relevantThresholds.map((threshold) => ({ ...threshold, comparisor: supportedThresholds.find(t => t.type === threshold.comparisor?.type) }))
         }
     })
 }
@@ -81,4 +82,20 @@ export function isHealthyRow(thresholds: Threshold[]) {
                       }
                   })
                   .every(Boolean)
+}
+
+export function getCellHealthState(field: string, value: string, row: any, thresholds: Threshold[]): CellHealthState  {
+    const relevantThresholds = thresholds.filter((t) => t.field === field).filter((t) => _isRowMatch(row, Object.values(t.filters))).filter((t) => t.comparisor)
+
+    if (relevantThresholds.length === 0) { return CellHealthState.UNKNOWN }
+
+    if (relevantThresholds.map((t) => !t.comparisor.exceeds(value, t.value)).every(Boolean)) {
+        return CellHealthState.HEALTHY
+    }
+
+    return CellHealthState.UNHEALTHY
+}
+
+export function getCellRelevantThresholds(field: string, value: string, row: any, thresholds: Threshold[]): Threshold[]  {
+    return thresholds.filter((t) => t.field === field).filter((t) => _isRowMatch(row, Object.values(t.filters))).filter((t) => t.comparisor)
 }

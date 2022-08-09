@@ -1,7 +1,8 @@
 import React from 'react';
-import { IntTableHeader, TableRow, Threshold } from '../../types';
+import { IntTableHeader, TableRow, Threshold, CellHealthState } from '../../types';
+import { Tooltip, Icon } from '@grafana/ui'
 import BootstrapTable from 'react-bootstrap-table-next';
-import { isHealthyRow } from 'processing/metrics_processor'
+import { getCellHealthState, getCellRelevantThresholds } from 'processing/metrics_processor'
 
 interface SortableTableProps {
   rows: TableRow[];
@@ -17,20 +18,64 @@ function sort(a: string, b: string, order: string) {
   return Number(b) - Number(a);
 }
 
-function getTableHeaders(rows: TableRow[]): IntTableHeader[] {
+const cellHealthStateToBackgroundColor = {
+    [CellHealthState.HEALTHY]: 'green',
+    [CellHealthState.UNHEALTHY]: 'red',
+    [CellHealthState.UNKNOWN]: 'transparent'
+}
+
+function _thresholdsTooltip(thresholds: Threshold[]) {
+    return (
+        <div>
+            {thresholds.map((t) => (
+                <span>Threshold: {t.field} {t.comparisor.label} {t.value}</span>
+            ))}
+        </div>
+    )
+}
+
+function getTableHeaders(rows: TableRow[], thresholds: Threshold[]): IntTableHeader[] {
     if (rows.length === 0) {
         return []
     }
     return Object.keys(rows[0]).map((column) => ({
         text: column,
         dataField: column,
-        sort: true
+        sort: true,
+        formatter: (cell: any, row: any) => {
+            const healthState = getCellHealthState(column, cell, row, thresholds)
+            const relevantThresholds = getCellRelevantThresholds(column, cell, row, thresholds)
+            const background = cellHealthStateToBackgroundColor[healthState]
+            if (healthState === CellHealthState.UNKNOWN) {
+                return (
+                    <div style={{ background,
+                                  height: '100%',
+                                  width: '100%',
+                                  padding: '3px 5px' }}>
+                        {cell}
+                    </div>
+                )
+            }
+            return (
+                <div style={{ background,
+                              height: '100%',
+                              width: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '3px 5px' }}>
+                    <div>{cell}</div>
+                    <Tooltip content={_thresholdsTooltip(relevantThresholds)}>
+                        <Icon name="info-circle" style={{ marginLeft: 4 }} />
+                    </Tooltip>
+                </div>
+            )
+        }
     }))
 
 }
 
 export const SortableTable: React.FC<SortableTableProps> = ({ rows, title, noDataText, thresholds }) => {
-    const tableHeaders = getTableHeaders(rows)
+    const tableHeaders = getTableHeaders(rows, thresholds)
 
     tableHeaders.forEach(function (value, i) {
         value.classes = 'table--td--selection';
@@ -40,13 +85,6 @@ export const SortableTable: React.FC<SortableTableProps> = ({ rows, title, noDat
             };
         }
     });
-
-    const rowStyle = (row: any) => {
-        if (!isHealthyRow(thresholds)(row)) {
-            return { backgroundColor: 'red' }
-        }
-        return { }
-    };
 
     return (
         <div>
@@ -58,7 +96,6 @@ export const SortableTable: React.FC<SortableTableProps> = ({ rows, title, noDat
                                    data={rows}
                                    columns={tableHeaders}
                                    classes="table--selection"
-                                   rowStyle={rowStyle}
                                    headerClasses="table--selection table--selection--head"
                                />
                            ) : (<div className="no-data--selection">{noDataText}</div>)
