@@ -435,7 +435,7 @@ export default class CanvasDrawer {
       index--;
     }
 
-    const dangerColor = this.controller.getSettings(true).style.dangerColor;
+    const dangerColor = 'rgb(196, 22, 42)'
     ctx.fillStyle = dangerColor;
     ctx.fill();
   }
@@ -812,7 +812,11 @@ export default class CanvasDrawer {
     ctx.fillStyle = 'white';
     ctx.fill();
 
-    const { healthyColor, dangerColor, noDataColor } = this.controller.getSettings(true).style;
+    const { healthyColor, dangerColor, noDataColor } = {
+        healthyColor: 'rgb(87, 148, 242)',
+        dangerColor: 'rgb(196, 22, 42)',
+        noDataColor: 'rgb(123, 123, 138)'
+    }
     const colors = [dangerColor, noDataColor, healthyColor];
     for (let i = 0; i < percentages.length; i++) {
       let arc = this._drawArc(ctx, currentArc, cX, cY, radius, percentages[i], colors[i]);

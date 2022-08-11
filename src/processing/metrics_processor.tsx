@@ -4,19 +4,7 @@ import {
 import supportedThresholds from '../options/thresholdMapping/supportedThresholds';
 import { CellHealthState }  from 'types'
 import * as _ from 'lodash'
-
 import { TableMetric, ElementRef, TableFilter, TableRow, Connection, Node, Threshold, ITable, ITableMapping, ThresholdFilter } from '../types';
-
-
-function _applyFiltersToRows(rows: TableRow[], filters: TableFilter[]): TableRow[] {
-    const validFilters = filters.filter((f) => f.fieldName.trim().length && f.fieldRegex.trim().length)
-    return validFilters.reduce((acc, filter) => {
-        return [...acc.filter((r: any) => {
-            if (!r[filter.fieldName]) return false
-            return r[filter.fieldName].toString().match(new RegExp(filter.fieldRegex))
-        })]
-    }, rows)
-}
 
 function _roundTo2DecimalPlaces(value: any) {
     if (typeof value === "number") {
@@ -25,20 +13,48 @@ function _roundTo2DecimalPlaces(value: any) {
     return value
 }
 
+function _fieldBelongsToTable(table: ITable, fieldName: string): boolean {
+    return Object.values(table.fields).includes(fieldName)
+}
+
+function _notOverridingRow(row: any, fieldName: string): boolean {
+    return !row[fieldName]
+}
+
+function _matchesFilters(dataFrame: DataFrame, index: number, filters: TableFilter[]): boolean {
+    const validFilters = filters.filter((f) => f.fieldName.trim().length && f.fieldRegex.trim().length)
+    return validFilters.map((filter) => {
+        const field = dataFrame.fields.find((f) => (f.config?.displayName || f.name) === filter.fieldName)
+        if (!field) return false
+
+        const fieldValue = field.values.get(index)
+        if (!fieldValue || typeof fieldValue !== "string") return false
+
+        return fieldValue.match(new RegExp(filter.fieldRegex))
+    }).every(Boolean)
+}
+
 function _seriesToTableRows(series: DataFrame[], tableMapping: ITableMapping, table: ITable): TableRow[] {
     const rows = new Array<TableRow>()
+
     series.forEach((dataFrame) => {
         for (let i = 0; i < dataFrame.length; i++) {
-            rows.push(_.reduce(dataFrame.fields, (acc: any, field) => {
-                if (!acc[field.config?.displayName || field.name] && Object.values(table.fields).includes(field.config?.displayName || field.name)) {
-                    return { ...acc, [field.config?.displayName || field.name] : _roundTo2DecimalPlaces(field.values.get(i)) };
-                }
-                return acc
-            }, {}))
+            if (_matchesFilters(dataFrame, i, Object.values(tableMapping.filters))) {
+                rows.push(_.reduce(dataFrame.fields, (row: any, field) => {
+                    const fieldName = field.config?.displayName || field.name
+                    const fieldValue = _roundTo2DecimalPlaces(field.values.get(i))
+
+                    if (_fieldBelongsToTable(table, fieldName) && _notOverridingRow(row, fieldName)) {
+                        return { ...row, [fieldName] : fieldValue };
+                    }
+
+                    return row
+                }, {}))
+            }
         }
     })
 
-    const tableRows = _.uniqWith((_applyFiltersToRows(rows, Object.values(tableMapping.filters))), _.isEqual)
+    const tableRows = _.uniqWith(rows, _.isEqual)
 
     return tableRows
 }

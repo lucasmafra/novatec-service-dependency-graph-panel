@@ -53,7 +53,7 @@ function getTableHeaders(rows: TableRow[], thresholds: Threshold[]): IntTableHea
                                   minHeight: 27,
                                   width: '100%',
                                   padding: '3px 5px' }}>
-                        {cell}
+                        {cell || '-'}
                     </div>
                 )
             }
@@ -65,7 +65,7 @@ function getTableHeaders(rows: TableRow[], thresholds: Threshold[]): IntTableHea
                               display: 'flex',
                               alignItems: 'center',
                               padding: '3px 5px' }}>
-                    <div>{cell}</div>
+                    <div>{cell || '-'}</div>
                     <Tooltip content={_thresholdsTooltip(relevantThresholds)}>
                         <Icon name="info-circle" style={{ marginLeft: 4 }} />
                     </Tooltip>

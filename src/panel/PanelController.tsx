@@ -9,13 +9,12 @@ import {
 } from '@grafana/data';
 import { ServiceDependencyGraph } from './serviceDependencyGraph/ServiceDependencyGraph';
 import _ from 'lodash';
-import { CurrentData, CyData, IntGraph, IntGraphEdge, IntGraphNode, PanelSettings, TableMetric } from '../types';
+import { CurrentData, CyData, IntGraphEdge, IntGraphNode, PanelSettings, TableMetric } from '../types';
 import cytoscape, { EdgeSingular, NodeSingular } from 'cytoscape';
 import '../css/novatec-service-dependency-graph-panel.css';
 import GraphGenerator from 'processing/graph_generator';
 import PreProcessor from 'processing/pre_processor';
 import { getTableMetrics, isHealthyRow, elementThroughput } from 'processing/metrics_processor'
-import data from '../dummy_data_frame';
 import { getTemplateSrv } from '@grafana/runtime';
 import { EnGraphNodeType, ElementRef } from 'types';
 
@@ -105,14 +104,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
   }
 
   componentDidUpdate() {
-    this.processData();
-  }
-
-  processQueryData(data: DataFrame[]) {
-    this.validQueryTypes = this.hasOnlyTableQueries(data);
-    const graphData = this.preProcessor.processData(data);
-
-    this.currentData = graphData;
+    // this.processData();
   }
 
   hasOnlyTableQueries(inputData: DataFrame[]) {
@@ -125,16 +117,6 @@ export class PanelController extends PureComponent<Props, PanelState> {
     });
 
     return result;
-  }
-
-  processData() {
-    var inputData: DataFrame[] = this.props.data.series;
-    if (this.getSettings(true).dataMapping.showDummyData) {
-      inputData = data;
-    }
-    this.processQueryData(inputData);
-    const graph: IntGraph = this.graphGenerator.generateGraph(this.currentData.graph);
-    return graph;
   }
 
   _transformEdges(edges: IntGraphEdge[]): CyData[] {
@@ -234,7 +216,6 @@ export class PanelController extends PureComponent<Props, PanelState> {
     }
 
     render() {
-        // const data = this.processData();
         let { nodes, connections, tables, tableMappings, thresholds } = this.getSettings(true)
 
         nodes = Object.values(nodes)
