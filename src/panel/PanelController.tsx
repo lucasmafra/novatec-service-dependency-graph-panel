@@ -9,14 +9,14 @@ import {
 } from '@grafana/data';
 import { ServiceDependencyGraph } from './serviceDependencyGraph/ServiceDependencyGraph';
 import _ from 'lodash';
-import { CurrentData, CyData, IntGraphEdge, IntGraphNode, PanelSettings, TableMetric } from '../types';
+import { CurrentData, CyData, IntGraphEdge, IntGraphNode, PanelSettings } from '../types';
 import cytoscape, { EdgeSingular, NodeSingular } from 'cytoscape';
 import '../css/novatec-service-dependency-graph-panel.css';
 import GraphGenerator from 'processing/graph_generator';
 import PreProcessor from 'processing/pre_processor';
-import { getTableMetrics, isHealthyRow, elementThroughput } from 'processing/metrics_processor'
+import { getTableMetrics, elementThroughput, seriesToJSON, getElementHealth } from 'processing/metrics_processor'
 import { getTemplateSrv } from '@grafana/runtime';
-import { EnGraphNodeType, ElementRef } from 'types';
+import { EnGraphNodeType } from 'types';
 
 interface Props extends PanelProps<PanelSettings> {}
 
@@ -202,19 +202,6 @@ export class PanelController extends PureComponent<Props, PanelState> {
     });
   }
 
-    elementHealth(elementRef: ElementRef, tableMetrics: TableMetric[]) {
-        const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.tableMapping.elementRef, elementRef))
-
-        const healthyRows = relevantTableMetrics.map(t => t.rows.filter(isHealthyRow(t.thresholds)).length)
-                                                .reduce((a, b) => a + b, 0)
-
-        const totalRows = relevantTableMetrics.map(t => t.rows.length)
-                                              .reduce((a, b) => a + b, 0)
-
-        if (totalRows === 0) return 1
-        return healthyRows / totalRows
-    }
-
     render() {
         let { nodes, connections, tables, tableMappings, thresholds } = this.getSettings(true)
 
@@ -225,6 +212,8 @@ export class PanelController extends PureComponent<Props, PanelState> {
         thresholds = Object.values(thresholds)
 
       const tableMetrics = getTableMetrics(nodes, connections, tables, tableMappings, thresholds, this.props.data.series)
+
+      console.log('seriesJSON', seriesToJSON(this.props.data.series))
 
       const data = {
           nodes: nodes.map((node) => {
@@ -237,7 +226,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
                       layer: 0,
                       metrics: {
                           rate: throughput,
-                          error_rate: throughput * (1 - this.elementHealth({ nodeId: node.id }, tableMetrics))
+                          error_rate: throughput * (1 - getElementHealth({ nodeId: node.id }, tableMetrics))
                       }
                   }
               }
@@ -254,7 +243,7 @@ export class PanelController extends PureComponent<Props, PanelState> {
                       label,
                       metrics: {
                           rate: throughput,
-                          error_rate: throughput * (1 - this.elementHealth({ connectionId: id }, tableMetrics))
+                          error_rate: throughput * (1 - getElementHealth({ connectionId: id }, tableMetrics))
                       }
                   }
               }

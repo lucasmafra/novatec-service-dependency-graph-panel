@@ -59,6 +59,21 @@ function _seriesToTableRows(series: DataFrame[], tableMapping: ITableMapping, ta
     return tableRows
 }
 
+export function seriesToJSON(series: DataFrame[]) {
+    const rows = new Array<TableRow>()
+    series.forEach((dataFrame) => {
+        for (let i = 0; i < dataFrame.length; i++) {
+            rows.push(_.reduce(dataFrame.fields, (row: any, field) => {
+                const fieldName = field.config?.displayName || field.name
+                const fieldValue = _roundTo2DecimalPlaces(field.values.get(i))
+                return { ...row, [fieldName] : fieldValue };
+            }, {}))
+        }
+    })
+    console.log('seriesJSON', JSON.stringify(rows))
+}
+
+
 function _getElementTableMetrics(elementRef: ElementRef, series: DataFrame[], tables: ITable[], tableMappings: ITableMapping[], thresholds: Threshold[]): TableMetric[] {
     const relevantTableMappings = tableMappings.filter((tableMapping) => {
         return  _.isEqual(tableMapping.elementRef, elementRef)
@@ -139,4 +154,28 @@ export function elementThroughput(elementRef: ElementRef, tableMetrics: TableMet
 
     return relevantTableMetrics.reduce(tableSum, 0)
 
+}
+
+export function getElementHealth(elementRef: ElementRef, tableMetrics: TableMetric[]) {
+    const relevantTableMetrics = tableMetrics.filter((tableMetric) => _.isEqual(tableMetric.tableMapping.elementRef, elementRef))
+
+    let healthyCells = 0
+    let unhealthyCells = 0
+
+    relevantTableMetrics.forEach((t) => {
+        t.rows.forEach((r) => {
+            Object.entries(r).forEach(([field, value]) => {
+                const cellHealth = getCellHealthState(field, value, r, t.thresholds)
+                if (cellHealth === CellHealthState.HEALTHY) {
+                    healthyCells++
+                } else if (cellHealth === CellHealthState.UNHEALTHY) {
+                    unhealthyCells++
+                }
+            })
+        })
+    })
+
+    if (healthyCells + unhealthyCells === 0) return 1
+
+    return healthyCells / (healthyCells + unhealthyCells)
 }
